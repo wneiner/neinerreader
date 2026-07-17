@@ -289,6 +289,13 @@ const toast = (m, ms=2600) => { const t=$('#toast'); t.textContent=m; t.classLis
 const loading = (on, sub) => { $('#loading').classList.toggle('on', !!on); $('#loadSub').textContent = sub||''; };
 const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/* content hash -> stable, collision-proof book id (needs https, which
+   GitHub Pages gives us) */
+async function sha256Hex(buf){
+  const h = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,20);
+}
+
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
 /* ---------- settings ---------- */
@@ -475,13 +482,16 @@ async function importFiles(files){
     loading(true, f.name);
     try{
       let buf = await f.arrayBuffer();
-      const size = buf.byteLength;
+      // hash the bytes BEFORE conversion (pdf.js detaches the buffer) so the
+      // id is content-addressed: two different books can never collide, and
+      // re-adding the same file updates it instead of duplicating
+      const id = 'bk_' + await sha256Hex(buf);
+      const existing = await dbGet(id);
       const data = isEpub ? await convertEpub(buf, f.name) : await convertPdf(buf, f.name);
       buf = null;   // release the source file before we store the text
       if (!data.chapters.length){ toast('No text found in '+f.name); continue; }
-      const id = 'bk_' + f.name.replace(/\W+/g,'_') + '_' + size;
-      await dbPut(Object.assign({ id, added: Date.now() }, data));
-      toast('Converted: ' + data.title);
+      await dbPut(Object.assign({ id, added: (existing && existing.added) || Date.now(), file: f.name }, data));
+      toast(existing ? 'Updated: ' + data.title : 'Converted: ' + data.title);
     }catch(err){
       console.error(err);
       toast('Failed to convert ' + f.name);
@@ -509,7 +519,7 @@ async function renderLib(){
     row.innerHTML =
       '<div class="spine"></div>' +
       '<div class="meta"><div class="t">'+esc(b.title)+'</div>' +
-      '<div class="a">'+esc(b.author||'')+' &middot; '+b.chapters.length+' chapters</div>' +
+      '<div class="a">'+esc([b.author, b.chapters.length+' chapters', b.file||''].filter(Boolean).join(' \u00B7 '))+'</div>' +
       '<div class="pctBar"><div style="width:'+pct+'%"></div></div>' +
       '<div class="pct">'+(pct>0?pct.toFixed(1)+'% READ':'UNREAD')+'</div></div>' +
       '<button class="rowBtn dl" title="Download standalone HTML">&#8681;</button>' +
