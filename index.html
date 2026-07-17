@@ -119,6 +119,128 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);font-size:11px;color:var(--txt)}
 .chip.sel{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
 
+/* ============ TOOLTIPS ============ */
+[data-tip]{position:relative}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{
+  content:attr(data-tip);position:absolute;z-index:70;
+  top:calc(100% + 7px);left:50%;transform:translateX(-50%);
+  background:var(--panel);border:1px solid var(--cyan);border-radius:4px;
+  padding:5px 9px;font-size:10px;color:var(--txt);white-space:nowrap;letter-spacing:0;
+  pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.55);font-family:var(--mono);
+}
+#readBar [data-tip]:hover::after,#readBar [data-tip]:focus-visible::after{left:auto;right:0;transform:none}
+.bookRow [data-tip]:hover::after{left:auto;right:0;transform:none}
+@media (hover:none){ [data-tip]:hover::after{display:none} }
+
+/* ============ BOOK PANEL ============ */
+#bookPanel{right:0;border-left:1px solid var(--line)}
+#bpTitle{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:2px}
+#bpAuthor{font-size:11px;color:var(--txt-dim);margin-bottom:14px}
+.bpBig{
+  display:flex;gap:8px;margin-bottom:16px;
+}
+.bpBig button{
+  flex:1;padding:11px;border:1px solid var(--amber);border-radius:4px;
+  background:var(--amber-soft);color:var(--amber);font-size:11px;letter-spacing:1px;
+}
+.bpBig button:hover{background:rgba(255,170,0,.26)}
+.bpGrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden;margin-bottom:18px}
+.bpCell{background:var(--panel);padding:9px 10px}
+.bpV{font-size:12px;color:var(--cyan)}
+.bpL{font-size:8px;color:var(--txt-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.bpBar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.bpBar div{height:100%;background:linear-gradient(90deg,var(--amber),var(--cyan))}
+.bpDel{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);color:var(--danger);font-size:11px;letter-spacing:1px;margin-top:8px}
+.bpDel:hover{border-color:var(--danger)}
+.dayRow{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:6px 0;border-bottom:1px solid rgba(34,48,64,.5)}
+.dayRow .dd{color:var(--txt-dim)}
+.dayRow .dv{color:var(--txt)}
+.dayRow.today .dd,.dayRow.today .dv{color:var(--amber)}
+
+/* ============ HIGHLIGHTS ============ */
+mark.hl{background:transparent;color:inherit;border-radius:2px;padding:0 1px;cursor:pointer}
+mark.hl.yellow{background:rgba(255,214,0,.40)}
+mark.hl.green{background:rgba(64,220,120,.34)}
+mark.hl.blue{background:rgba(70,170,255,.34)}
+mark.hl.under{background:transparent;border-bottom:2px solid currentColor}
+mark.hl.hasNote{box-shadow:0 0 0 1px rgba(255,170,0,.65)}
+#bookBody p.flash{animation:flashp 1.6s ease-out}
+@keyframes flashp{0%{background:rgba(255,170,0,.45)}100%{background:transparent}}
+
+/* ============ SELECTION TOOLBAR ============ */
+#selBar{
+  position:fixed;z-index:55;display:none;gap:6px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:6px;box-shadow:0 8px 26px rgba(0,0,0,.6);
+}
+#selBar.on{display:flex}
+.selc{width:26px;height:26px;border-radius:4px;border:1px solid rgba(128,128,128,.4)}
+.selc[data-color=yellow]{background:rgba(255,214,0,.75)}
+.selc[data-color=green]{background:rgba(64,220,120,.7)}
+.selc[data-color=blue]{background:rgba(70,170,255,.7)}
+.selc[data-color=under]{background:transparent;border-bottom:3px solid var(--amber)}
+.selAct{
+  padding:5px 9px;border:1px solid var(--line);border-radius:4px;
+  background:var(--panel-2);color:var(--txt);font-size:10px;letter-spacing:.5px;
+}
+.selAct:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ============ DICTIONARY ============ */
+#dictPop{
+  position:fixed;z-index:58;display:none;width:320px;max-width:88vw;max-height:56vh;overflow-y:auto;
+  background:var(--panel);border:1px solid var(--cyan);border-radius:8px;padding:14px 16px;
+  box-shadow:0 12px 34px rgba(0,0,0,.7);
+}
+#dictPop.on{display:block}
+#dictPop .dw{font-family:var(--disp);font-size:14px;color:var(--amber);letter-spacing:1px}
+#dictPop .dph{font-size:11px;color:var(--cyan);margin:3px 0 10px}
+#dictPop .dpos{font-size:9px;color:var(--txt-dim);letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 4px}
+#dictPop ol{margin:0;padding-left:16px}
+#dictPop li{font-size:11px;line-height:1.6;color:var(--txt);margin-bottom:4px}
+#dictPop .dex{color:var(--txt-dim);font-style:italic}
+#dictClose{position:absolute;top:8px;right:10px;color:var(--txt-dim);font-size:13px}
+#dictPop a{color:var(--cyan);font-size:10px}
+
+/* ============ NOTE MODAL ============ */
+#noteModal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:18px}
+#noteModal.on{display:flex}
+.nmBox{width:440px;max-width:100%;background:var(--panel);border:1px solid var(--amber);border-radius:8px;padding:16px}
+.nmQuote{font-size:11px;color:var(--txt-dim);border-left:2px solid var(--amber);padding-left:10px;margin-bottom:12px;max-height:96px;overflow-y:auto;line-height:1.5}
+#nmText{width:100%;height:120px;resize:vertical;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:10px;line-height:1.5}
+.nmRow{display:flex;gap:8px;align-items:center;margin-top:12px}
+
+/* ============ SEARCH ============ */
+#searchPanel{left:0;border-right:1px solid var(--line)}
+#searchIn{width:100%;padding:9px 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;color:var(--txt);font-family:var(--mono);font-size:12px}
+#searchMeta{font-size:10px;color:var(--txt-dim);margin:10px 0 6px;letter-spacing:1px}
+.srItem{display:block;width:100%;text-align:left;padding:9px 8px;border-bottom:1px solid rgba(34,48,64,.5);line-height:1.5}
+.srItem .srCh{font-size:9px;color:var(--cyan);letter-spacing:1px;display:block;margin-bottom:3px}
+.srItem .srTx{font-size:11px;color:var(--txt)}
+.srItem mark{background:rgba(255,170,0,.45);color:inherit;border-radius:2px}
+.srItem:hover{background:var(--panel-2)}
+
+/* ============ STATS STRIP ============ */
+#statsStrip{
+  display:none;gap:0;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel);margin-bottom:18px;overflow:hidden;cursor:pointer;
+}
+#statsStrip.on{display:flex}
+#statsStrip:hover{border-color:var(--cyan)}
+.stCell{flex:1;padding:11px 8px;text-align:center;border-right:1px solid var(--line);min-width:0}
+.stCell:last-child{border-right:none}
+.stV{font-family:var(--disp);font-size:14px;color:var(--amber);letter-spacing:1px}
+.stL{font-size:8px;color:var(--txt-dim);letter-spacing:1px;margin-top:3px;text-transform:uppercase}
+#statsPanel{right:0;border-left:1px solid var(--line)}
+.bars{display:flex;align-items:flex-end;gap:3px;height:80px;margin:6px 0 4px}
+.bars div{flex:1;background:var(--line);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+.bars div.today{background:var(--amber)}
+.bars div.has{background:var(--cyan)}
+.barLbl{display:flex;gap:3px;font-size:7px;color:var(--txt-dim)}
+.barLbl span{flex:1;text-align:center}
+.bkStat{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:7px 0;border-bottom:1px solid rgba(34,48,64,.5)}
+.bkStat .bn{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bkStat .bt{color:var(--cyan);flex-shrink:0}
+
 /* ============ VERSION BADGE + TOOLTIP ============ */
 #verBadge{
   position:relative;display:inline-block;margin-left:8px;cursor:help;
@@ -203,13 +325,14 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
       <div id="libSync" style="font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-top:3px"></div>
     </div>
     <div class="spacer"></div>
-    <button class="btn" id="addBtn">+ ADD BOOK</button>
-    <button class="btn ghost" id="bkBtn" title="Save library + bookmarks to a file">BACKUP</button>
-    <button class="btn ghost" id="rsBtn" title="Restore library from a backup file">RESTORE</button>
-    <button class="btn ghost" id="libSetBtn" title="Settings &amp; sync">&#9881;</button>
+    <button class="btn" id="addBtn" data-tip="Convert an EPUB or PDF">+ ADD BOOK</button>
+    <button class="btn ghost" id="bkBtn" data-tip="Save whole library to a file">BACKUP</button>
+    <button class="btn ghost" id="rsBtn" data-tip="Restore from a backup file">RESTORE</button>
+    <button class="btn ghost" id="libSetBtn" data-tip="Settings, sync &amp; themes">&#9881;</button>
     <input type="file" id="fileInput" accept=".epub,.pdf,application/epub+zip,application/pdf" multiple hidden>
     <input type="file" id="bkInput" accept=".json,application/json" hidden>
   </header>
+  <div id="statsStrip" data-tip="Open full reading stats"></div>
   <div id="list"></div>
   <div id="empty" style="display:none">
     <div class="big">LIBRARY EMPTY</div>
@@ -222,16 +345,36 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
 <!-- ==================== READING (flat document, window scroll) ==================== -->
 <div id="readView">
   <div id="readBar" aria-hidden="true">
-    <button class="iconBtn" id="backBtn" title="Library">&#8592;</button>
-    <button class="iconBtn" id="tocBtn" title="Contents &amp; bookmarks">&#9776;</button>
-    <button class="iconBtn" id="bmBtn" title="Bookmark this spot">&#9733;</button>
-    <button class="iconBtn" id="setBtn" title="Settings &amp; export">&#9881;</button>
+    <button class="iconBtn" id="backBtn" data-tip="Back to library">&#8592;</button>
+    <button class="iconBtn" id="tocBtn" data-tip="Contents, bookmarks &amp; notes">&#9776;</button>
+    <button class="iconBtn" id="bmBtn" data-tip="Bookmark this spot">&#9733;</button>
+    <button class="iconBtn" id="srBtn" data-tip="Search in this book">&#128269;</button>
+    <button class="iconBtn" id="setBtn" data-tip="Settings &amp; export">&#9881;</button>
   </div>
   <div id="bookBody"></div>
 </div>
 
 <!-- ==================== PANELS ==================== -->
 <div id="scrim"></div>
+<div class="panel" id="bookPanel">
+  <div class="panelHead"><h3>BOOK</h3><button class="iconBtn" data-close>&#10005;</button></div>
+  <div class="panelBody" id="bookBody2"></div>
+</div>
+
+<div class="panel" id="searchPanel">
+  <div class="panelHead"><h3>SEARCH</h3><button class="iconBtn" data-close>&#10005;</button></div>
+  <div class="panelBody">
+    <input id="searchIn" type="search" placeholder="Find in this book&hellip;" autocomplete="off">
+    <div id="searchMeta"></div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<div class="panel" id="statsPanel">
+  <div class="panelHead"><h3>READING STATS</h3><button class="iconBtn" data-close>&#10005;</button></div>
+  <div class="panelBody" id="statsBody"></div>
+</div>
+
 <div class="panel" id="tocPanel">
   <div class="panelHead"><h3>CONTENTS</h3><button class="iconBtn" data-close>&#10005;</button></div>
   <div class="panelBody" id="tocList"></div>
@@ -246,6 +389,11 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
         <button class="chip" id="exTxt">TXT</button>
         <button class="chip" id="exZip">ZIP &middot; chapters</button>
       </div>
+      <div class="row" style="margin-top:8px">
+        <button class="chip" id="exNotes">NOTES JSON</button>
+        <button class="chip" id="imNotes">IMPORT NOTES</button>
+      </div>
+      <input type="file" id="noteInput" accept=".json,application/json" hidden>
     </div>
     <div class="setGroup themes">
       <div class="setLabel">Theme</div>
@@ -303,13 +451,38 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
       <input class="textIn" id="syncUrl" type="url" placeholder="https://your-server:8377" autocomplete="off">
       <input class="textIn" id="syncKey" type="password" placeholder="sync key" autocomplete="off">
       <div class="row">
-        <button class="chip" id="syncNowBtn">SYNC NOW</button>
-        <button class="chip" id="syncLinkBtn">COPY SETUP LINK</button>
+        <button class="chip" id="syncNowBtn" data-tip="Push and pull now">SYNC NOW</button>
+        <button class="chip" id="syncLinkBtn" data-tip="One link that configures another device">COPY SETUP LINK</button>
       </div>
       <div id="syncStatus">not configured</div>
       <div style="font-size:10px;color:var(--txt-dim);margin-top:6px;line-height:1.5" id="syncNote">
         Open the setup link once on any other browser or machine and it configures itself.
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="selBar">
+  <button class="selc" data-color="yellow" title="Yellow"></button>
+  <button class="selc" data-color="green" title="Green"></button>
+  <button class="selc" data-color="blue" title="Blue"></button>
+  <button class="selc" data-color="under" title="Underline"></button>
+  <button class="selAct" id="selNote" data-tip="Highlight and attach a note">NOTE</button>
+  <button class="selAct" id="selDefine" data-tip="Dictionary lookup">DEFINE</button>
+  <button class="selAct" id="selCopy" data-tip="Copy selection">COPY</button>
+</div>
+
+<div id="dictPop"><button id="dictClose">&#10005;</button><div id="dictBody"></div></div>
+
+<div id="noteModal">
+  <div class="nmBox">
+    <div class="nmQuote" id="nmQuote"></div>
+    <textarea id="nmText" placeholder="Your note&hellip;"></textarea>
+    <div class="nmRow">
+      <button class="chip" id="nmDel">DELETE</button>
+      <div style="flex:1"></div>
+      <button class="chip" id="nmCancel">CANCEL</button>
+      <button class="chip sel" id="nmSave">SAVE</button>
     </div>
   </div>
 </div>
@@ -346,6 +519,20 @@ const SYNC_CONFIG = {
    ##  this list automatically.                               ##
    ############################################################ */
 const CHANGELOG = [
+  { v:'4.1', d:'2026-07-17', notes:[
+    'Book panel: bookmarks, notes and exports reachable from the library',
+    'Export buttons merged into one options button per book',
+    'Stats: pages read, book size, word counts, library storage total',
+    'Stats: day-by-day reading history',
+    'Tooltips on every control',
+  ]},
+  { v:'4.0', d:'2026-07-17', notes:[
+    'Highlights + notes: select text for colours, notes, define, copy',
+    'Notes listed in the contents panel; export/import as JSON',
+    'Search inside the book, with jump-to-hit',
+    'Dictionary lookup on selected words',
+    'Reading stats: time per day, streak, per-book totals, finished shelf',
+  ]},
   { v:'3.6', d:'2026-07-17', notes:[
     'Mobile: library header no longer runs off screen (added breakpoints)',
     'Reading toolbar trimmed 6 buttons to 4; exports moved into Settings',
@@ -419,6 +606,58 @@ const FONTS = {
 const getPos = id => JSON.parse(localStorage.getItem('nr3.pos.'+id)||'null');
 const setPos = (id,rec) => { localStorage.setItem('nr3.pos.'+id, JSON.stringify(Object.assign({t:Date.now()}, rec))); markDirty(); scheduleSync(); };
 const getBms = id => JSON.parse(localStorage.getItem('nr3.bm.'+id)||'[]');
+
+/* ---- annotations (highlights + notes) ---- */
+const getAnns = id => JSON.parse(localStorage.getItem('nr3.an.'+id)||'[]');
+const getAnnT = id => +localStorage.getItem('nr3.ant.'+id) || 0;
+const setAnns = (id,a) => { localStorage.setItem('nr3.an.'+id, JSON.stringify(a)); localStorage.setItem('nr3.ant.'+id, Date.now()); markDirty(); scheduleSync(); };
+const setAnnsRawQuiet = (id,rec) => { localStorage.setItem('nr3.an.'+id, JSON.stringify(rec.a||[])); localStorage.setItem('nr3.ant.'+id, rec.t||Date.now()); };
+
+/* ---- reading stats, bucketed per device so totals across devices sum
+        correctly instead of clobbering each other ---- */
+const DEVID = (()=>{ let d = localStorage.getItem('nr3.devid');
+  if (!d){ d = 'd_' + Math.random().toString(36).slice(2,10); localStorage.setItem('nr3.devid', d); } return d; })();
+const getStats = () => JSON.parse(localStorage.getItem('nr3.stats')||'{}');
+const setStats = s => { localStorage.setItem('nr3.stats', JSON.stringify(s)); markDirty(); };
+const todayKey = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const fmtDur = s => { const h=Math.floor(s/3600), m=Math.round((s%3600)/60); return h ? h+'h '+m+'m' : m+'m'; };
+const fmtBytes = b => b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : b >= 1024 ? Math.round(b/1024)+' KB' : b+' B';
+const fmtNum = n => n.toLocaleString();
+
+/* ---- book metrics: words, chars, estimated pages (275 words/page,
+        the usual paperback figure). Memoised: a big book is ~1M chars. ---- */
+const _mcache = {};
+function metrics(b){
+  if (_mcache[b.id]) return _mcache[b.id];
+  let chars = 0, words = 0;
+  for (const ch of b.chapters) for (const p of ch.paras){
+    chars += p.length;
+    words += (p.match(/\S+/g)||[]).length;
+  }
+  const m = { chars, words, pages: Math.max(1, Math.ceil(words/275)), bytes: new Blob([JSON.stringify(b.chapters)]).size };
+  _mcache[b.id] = m;
+  return m;
+}
+
+/* ---- pages progressed today, derived from the position we already store ---- */
+function trackPages(){
+  if (!current) return;
+  const m = metrics(current);
+  const p = getPos(current.id);
+  const nowPages = Math.round(((p && p.o) || 0) * m.pages);
+  const key = 'nr3.pgm.' + current.id;
+  const last = +localStorage.getItem(key) || 0;
+  if (nowPages <= last) return;
+  localStorage.setItem(key, nowPages);
+  const all = getStats();
+  const mine = all[DEVID] || { days:{}, books:{}, t:0 };
+  mine.pages = mine.pages || {};
+  const d = todayKey();
+  mine.pages[d] = (mine.pages[d]||0) + (nowPages - last);
+  mine.t = Date.now();
+  all[DEVID] = mine;
+  setStats(all);
+}
 const setBms = (id,a) => { localStorage.setItem('nr3.bm.'+id, JSON.stringify(a)); localStorage.setItem('nr3.bmt.'+id, Date.now()); markDirty(); scheduleSync(); };
 const getBmT = id => +localStorage.getItem('nr3.bmt.'+id) || 0;
 const setBmsRaw = (id, rec) => { localStorage.setItem('nr3.bm.'+id, JSON.stringify(rec.a||[])); localStorage.setItem('nr3.bmt.'+id, rec.t||Date.now()); };
@@ -590,12 +829,13 @@ async function importFiles(files){
       // hash the bytes BEFORE conversion (pdf.js detaches the buffer) so the
       // id is content-addressed: two different books can never collide, and
       // re-adding the same file updates it instead of duplicating
+      const srcSize = buf.byteLength;
       const id = 'bk_' + await sha256Hex(buf);
       const existing = await dbGet(id);
       const data = isEpub ? await convertEpub(buf, f.name) : await convertPdf(buf, f.name);
       buf = null;   // release the source file before we store the text
       if (!data.chapters.length){ toast('No text found in '+f.name); continue; }
-      await dbPut(Object.assign({ id, added: (existing && existing.added) || Date.now(), file: f.name }, data));
+      await dbPut(Object.assign({ id, added: (existing && existing.added) || Date.now(), file: f.name, srcSize }, data));
       toast(existing ? 'Updated: ' + data.title : 'Converted: ' + data.title);
     }catch(err){
       console.error(err);
@@ -627,27 +867,12 @@ async function renderLib(){
       '<div class="a">'+esc([b.author, b.chapters.length+' chapters', b.file||''].filter(Boolean).join(' \u00B7 '))+'</div>' +
       '<div class="pctBar"><div style="width:'+pct+'%"></div></div>' +
       '<div class="pct">'+(pct>0?pct.toFixed(1)+'% READ':'UNREAD')+'</div></div>' +
-      '<button class="rowBtn dl" title="Download standalone HTML">&#8681;</button>' +
-      '<button class="rowBtn txt" title="Download plain .txt (best for local Read Aloud)">TXT</button>' +
-      '<button class="rowBtn zip" title="Download chapters as separate .txt files (zip)">ZIP</button>' +
-      '<button class="rowBtn del" title="Remove">&#10005;</button>';
+      '<button class="rowBtn opt" data-tip="Bookmarks, notes, exports, details">&#8942;</button>';
     row.addEventListener('click', e=>{
       if (e.target.closest('.rowBtn')) return;
       openBook(b.id);
     });
-    row.querySelector('.del').addEventListener('click', async ()=>{
-      if (!confirm('Remove "'+b.title+'"?')) return;
-      await dbDel(b.id);
-      localStorage.removeItem('nr3.pos.'+b.id);
-      localStorage.removeItem('nr3.bm.'+b.id);
-      localStorage.removeItem('nr3.bmt.'+b.id);
-      if (syncConfigured()){ try{ await api('/api/book/'+encodeURIComponent(b.id), {method:'DELETE'}); }catch(e){} }
-      markDirty(); autosaveNow(true);
-      renderLib();
-    });
-    row.querySelector('.dl').addEventListener('click', ()=>exportHtml(b));
-    row.querySelector('.txt').addEventListener('click', ()=>exportTxt(b));
-    row.querySelector('.zip').addEventListener('click', ()=>exportZip(b));
+    row.querySelector('.opt').addEventListener('click', ()=>openBookPanel(b));
     list.appendChild(row);
   }
 }
@@ -660,24 +885,27 @@ async function renderLib(){
    ============================================================ */
 let current = null, curCh = 0, saveTimer = null;
 
-async function openBook(id){
+async function openBook(id, target){
   const b = await dbGet(id);
   if (!b){ toast('Book not found'); return; }
   current = b;
   const pos = getPos(id);
-  curCh = pos && typeof pos.ch === 'number' ? Math.max(0, Math.min(pos.ch, b.chapters.length-1)) : 0;
+  const src = target || pos || {};
+  curCh = typeof src.ch === 'number' ? Math.max(0, Math.min(src.ch, b.chapters.length-1)) : 0;
   document.body.classList.add('reading');
   $('#exportGroup').style.display = 'block';
+  statsStart();
   buildToc();
   applySettings();
-  renderView(pos ? (pos.p || 0) : 0);
+  renderView(src.p || 0);
+  if (target && target.jump) jumpTo(target.jump.ci, target.jump.pi, true);
 }
 
 function sectionEl(ch, i){
   const sec = document.createElement('section');
   sec.id = 'ch-'+i;
   const h = document.createElement('h2'); h.textContent = ch.title; sec.appendChild(h);
-  for (const p of ch.paras){ const e = document.createElement('p'); e.textContent = p; sec.appendChild(e); }
+  ch.paras.forEach((p,pi)=>{ const e = document.createElement('p'); e.dataset.p = pi; e.textContent = p; sec.appendChild(e); });
   return sec;
 }
 
@@ -711,9 +939,52 @@ function renderView(scrollFrac){
     frag.appendChild(chapterNavEl());
   }
   el.appendChild(frag);
+  paintAnnotations();
   requestAnimationFrame(()=>{
     const max = document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo(0, max > 0 ? (scrollFrac||0) * max : 0);
+  });
+}
+
+/* ---- repaint stored highlights onto the rendered paragraphs ---- */
+function paintAnnotations(){
+  if (!current) return;
+  const anns = getAnns(current.id);
+  if (!anns.length) return;
+  const byKey = {};
+  for (const a of anns) (byKey[a.ci+':'+a.pi] = byKey[a.ci+':'+a.pi] || []).push(a);
+  for (const key of Object.keys(byKey)){
+    const [ci, pi] = key.split(':').map(Number);
+    const sec = document.getElementById('ch-'+ci);
+    if (!sec) continue;
+    const p = sec.querySelector('p[data-p="'+pi+'"]');
+    if (!p) continue;
+    const text = (current.chapters[ci] && current.chapters[ci].paras[pi]) || '';
+    const list = byKey[key].slice().sort((x,y)=>x.start-y.start);
+    let html = '', cursor = 0;
+    for (const a of list){
+      if (a.start < cursor || a.end > text.length) continue;   // skip overlaps / stale
+      html += esc(text.slice(cursor, a.start));
+      html += '<mark class="hl '+a.color+(a.note?' hasNote':'')+'" data-an="'+a.id+'">'+esc(text.slice(a.start, a.end))+'</mark>';
+      cursor = a.end;
+    }
+    html += esc(text.slice(cursor));
+    p.innerHTML = html;
+  }
+}
+
+/* ---- jump to a specific paragraph, optionally flashing it ---- */
+function jumpTo(ci, pi, flash){
+  if (!current) return;
+  if (settings.chunk === 'chapter' && ci !== curCh){ curCh = ci; renderView(0); }
+  requestAnimationFrame(()=>{
+    const sec = document.getElementById('ch-'+ci);
+    const p = sec && sec.querySelector('p[data-p="'+pi+'"]');
+    const target = p || sec;
+    if (!target) return;
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 80 });
+    if (flash && p){ p.classList.add('flash'); setTimeout(()=>p.classList.remove('flash'), 1600); }
+    savePosNow();
   });
 }
 
@@ -732,6 +1003,9 @@ function gotoChapter(i){
 
 function closeBook(){
   savePosNow();
+  statsStop();
+  hideSelBar();
+  $('#dictPop').classList.remove('on');
   if (syncConfigured()) syncNow(true);
   current = null;
   $('#exportGroup').style.display = 'none';
@@ -741,6 +1015,7 @@ function closeBook(){
   document.body.style.color = '';
   window.scrollTo(0,0);
   renderLib();
+  renderStatsStrip();
 }
 
 /* which chapter is at the top of the viewport (whole-book mode) */
@@ -764,15 +1039,334 @@ function savePosNow(){
   } else {
     setPos(current.id, { p, ch: curCh, o: Math.min(1, (curCh + p) / n) });
   }
+  trackPages();
 }
 window.addEventListener('scroll', ()=>{
   if (!current) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(savePosNow, 400);
 });
-window.addEventListener('beforeunload', savePosNow);
+window.addEventListener('beforeunload', ()=>{ savePosNow(); statsStop(); });
+
+/* ============================================================
+   SELECTION -> highlight / note / define / copy
+   Offsets are stored as chapter + paragraph + char range. Because
+   we converted the book ourselves, those addresses are stable
+   forever -- no epub CFI fragility.
+   ============================================================ */
+let pendingSel = null, editingAnn = null;
+
+function offsetInPara(p, node, off){
+  let acc = 0;
+  const w = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+  let n;
+  while ((n = w.nextNode())){
+    if (n === node) return acc + off;
+    acc += n.textContent.length;
+  }
+  return acc;
+}
+
+function readSelection(){
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const r = sel.getRangeAt(0);
+  const startEl = r.startContainer.nodeType===3 ? r.startContainer.parentElement : r.startContainer;
+  const endEl = r.endContainer.nodeType===3 ? r.endContainer.parentElement : r.endContainer;
+  const p = startEl && startEl.closest && startEl.closest('#bookBody p[data-p]');
+  const p2 = endEl && endEl.closest && endEl.closest('#bookBody p[data-p]');
+  if (!p || p !== p2) return null;     // single-paragraph selections only
+  const sec = p.closest('section');
+  if (!sec) return null;
+  const ci = +sec.id.slice(3), pi = +p.dataset.p;
+  const start = offsetInPara(p, r.startContainer, r.startOffset);
+  const end = offsetInPara(p, r.endContainer, r.endOffset);
+  if (end - start < 1) return null;
+  return { ci, pi, start, end, text: sel.toString(), rect: r.getBoundingClientRect() };
+}
+
+function showSelBar(info){
+  const bar = $('#selBar');
+  bar.classList.add('on');
+  const bw = bar.offsetWidth || 280, bh = bar.offsetHeight || 40;
+  let x = info.rect.left + info.rect.width/2 - bw/2;
+  x = Math.max(8, Math.min(x, window.innerWidth - bw - 8));
+  let y = info.rect.top - bh - 10;
+  if (y < 8) y = info.rect.bottom + 10;
+  bar.style.left = x+'px'; bar.style.top = y+'px';
+}
+const hideSelBar = () => { $('#selBar').classList.remove('on'); pendingSel = null; };
+
+function addHighlight(color){
+  if (!pendingSel || !current) return;
+  const a = {
+    id: 'an_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    ci: pendingSel.ci, pi: pendingSel.pi, start: pendingSel.start, end: pendingSel.end,
+    text: pendingSel.text, color, note: '', t: Date.now()
+  };
+  const list = getAnns(current.id); list.push(a); setAnns(current.id, list);
+  window.getSelection().removeAllRanges();
+  hideSelBar();
+  renderView(currentFrac());
+  buildToc();
+  toast('Highlighted');
+  return a;
+}
+const currentFrac = () => {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  return max > 0 ? window.scrollY/max : 0;
+};
+
+function openNote(ann){
+  editingAnn = ann;
+  $('#nmQuote').textContent = ann.text;
+  $('#nmText').value = ann.note || '';
+  $('#nmDel').style.display = getAnns(current.id).some(x=>x.id===ann.id) ? 'block' : 'none';
+  $('#noteModal').classList.add('on');
+  setTimeout(()=>$('#nmText').focus(), 50);
+}
+function closeNote(){ $('#noteModal').classList.remove('on'); editingAnn = null; }
+
+function saveNote(){
+  if (!editingAnn || !current) return;
+  const list = getAnns(current.id);
+  const i = list.findIndex(x=>x.id===editingAnn.id);
+  const note = $('#nmText').value.trim();
+  if (i >= 0){ list[i].note = note; list[i].t = Date.now(); }
+  else { editingAnn.note = note; list.push(editingAnn); }
+  setAnns(current.id, list);
+  closeNote(); renderView(currentFrac()); buildToc();
+  toast('Note saved');
+}
+function deleteAnn(){
+  if (!editingAnn || !current) return;
+  setAnns(current.id, getAnns(current.id).filter(x=>x.id!==editingAnn.id));
+  closeNote(); renderView(currentFrac()); buildToc();
+  toast('Removed');
+}
+
+/* ---- dictionary: free, no key, CORS-enabled ---- */
+async function define(word){
+  const w = (word||'').trim().replace(/[^\p{L}\p{M}'-]/gu,'').toLowerCase();
+  const pop = $('#dictPop'), body = $('#dictBody');
+  if (!w){ toast('Select a single word'); return; }
+  pop.classList.add('on');
+  const bw = pop.offsetWidth || 320;
+  let x = (pendingSel ? pendingSel.rect.left : 40);
+  x = Math.max(8, Math.min(x, window.innerWidth - bw - 8));
+  let y = (pendingSel ? pendingSel.rect.bottom + 12 : 80);
+  if (y + 240 > window.innerHeight) y = Math.max(8, window.innerHeight - 260);
+  pop.style.left = x+'px'; pop.style.top = y+'px';
+  body.innerHTML = '<div class="dw">'+esc(w)+'</div><div class="dph">looking up\u2026</div>';
+  try{
+    const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w));
+    if (!r.ok) throw new Error('not found');
+    const j = await r.json();
+    const e = j[0];
+    let html = '<div class="dw">'+esc(e.word)+'</div>';
+    const ph = e.phonetic || (e.phonetics||[]).map(p=>p.text).filter(Boolean)[0];
+    if (ph) html += '<div class="dph">'+esc(ph)+'</div>';
+    for (const m of (e.meanings||[]).slice(0,4)){
+      html += '<div class="dpos">'+esc(m.partOfSpeech||'')+'</div><ol>';
+      for (const d of (m.definitions||[]).slice(0,3)){
+        html += '<li>'+esc(d.definition||'');
+        if (d.example) html += '<br><span class="dex">\u201C'+esc(d.example)+'\u201D</span>';
+        html += '</li>';
+      }
+      html += '</ol>';
+    }
+    body.innerHTML = html;
+  }catch(err){
+    body.innerHTML = '<div class="dw">'+esc(w)+'</div>' +
+      '<div class="dph">no entry found</div>' +
+      '<a href="https://en.wiktionary.org/wiki/'+encodeURIComponent(w)+'" target="_blank" rel="noopener">Look up on Wiktionary \u2197</a>';
+  }
+}
+
+/* ============================================================
+   SEARCH IN BOOK
+   ============================================================ */
+function runSearch(q){
+  const meta = $('#searchMeta'), out = $('#searchResults');
+  out.innerHTML = ''; meta.textContent = '';
+  const needle = (q||'').trim().toLowerCase();
+  if (needle.length < 2 || !current){ meta.textContent = needle ? 'TYPE AT LEAST 2 CHARACTERS' : ''; return; }
+  let hits = 0;
+  const frag = document.createDocumentFragment();
+  for (let ci=0; ci<current.chapters.length; ci++){
+    const ch = current.chapters[ci];
+    for (let pi=0; pi<ch.paras.length; pi++){
+      const text = ch.paras[pi];
+      const at = text.toLowerCase().indexOf(needle);
+      if (at === -1) continue;
+      hits++;
+      if (hits > 200) break;
+      const from = Math.max(0, at-40), to = Math.min(text.length, at+needle.length+60);
+      const b = document.createElement('button');
+      b.className = 'srItem';
+      b.innerHTML = '<span class="srCh">'+esc(ch.title)+'</span><span class="srTx">' +
+        (from>0?'\u2026':'') + esc(text.slice(from, at)) +
+        '<mark>'+esc(text.slice(at, at+needle.length))+'</mark>' +
+        esc(text.slice(at+needle.length, to)) + (to<text.length?'\u2026':'') + '</span>';
+      b.addEventListener('click', ()=>{ closePanels(); jumpTo(ci, pi, true); });
+      frag.appendChild(b);
+    }
+    if (hits > 200) break;
+  }
+  meta.textContent = hits ? (hits>200?'200+':hits) + ' MATCH' + (hits===1?'':'ES') : 'NO MATCHES';
+  out.appendChild(frag);
+}
+
+/* ============================================================
+   READING STATS
+   ============================================================ */
+let sessionStart = null;
+function statsStart(){ if (current && !sessionStart && !document.hidden) sessionStart = Date.now(); }
+function statsStop(){
+  if (!sessionStart || !current) { sessionStart = null; return; }
+  const sec = Math.round((Date.now() - sessionStart)/1000);
+  sessionStart = null;
+  if (sec < 5 || sec > 6*3600) return;         // ignore blips and forgotten tabs
+  const all = getStats();
+  const mine = all[DEVID] || { days:{}, books:{}, t:0 };
+  const d = todayKey();
+  mine.days[d] = (mine.days[d]||0) + sec;
+  mine.books[current.id] = (mine.books[current.id]||0) + sec;
+  mine.t = Date.now();
+  all[DEVID] = mine;
+  setStats(all);
+  scheduleSync();
+}
+setInterval(()=>{ if (sessionStart && current && !document.hidden){ statsStop(); statsStart(); } }, 60000);
+
+/* merge every device's buckets into one view */
+function statsTotals(){
+  const all = getStats();
+  const days = {}, books = {}, pages = {};
+  for (const dev of Object.keys(all)){
+    for (const [d,s] of Object.entries(all[dev].days||{})) days[d] = (days[d]||0)+s;
+    for (const [b,s] of Object.entries(all[dev].books||{})) books[b] = (books[b]||0)+s;
+    for (const [d,s] of Object.entries(all[dev].pages||{})) pages[d] = (pages[d]||0)+s;
+  }
+  return { days, books, pages };
+}
+function streakDays(days){
+  let n = 0;
+  const d = new Date();
+  // today only counts if you've read; otherwise start counting at yesterday
+  const key = x => x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+  if (!(days[key(d)] >= 60)) d.setDate(d.getDate()-1);
+  while (days[key(d)] >= 60){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function weekSeconds(days){
+  let s = 0;
+  const d = new Date();
+  for (let i=0;i<7;i++){
+    const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    s += days[k]||0; d.setDate(d.getDate()-1);
+  }
+  return s;
+}
+
+async function renderStatsStrip(){
+  const { days, books } = statsTotals();
+  const strip = $('#statsStrip');
+  const any = Object.keys(days).length;
+  if (!any){ strip.classList.remove('on'); return; }
+  const all = await dbAll();
+  const finished = all.filter(b=>{ const p=getPos(b.id); return p && (p.o||0) >= 0.98; }).length;
+  const { pages } = statsTotals();
+  strip.innerHTML =
+    '<div class="stCell"><div class="stV">'+fmtDur(weekSeconds(days))+'</div><div class="stL">This week</div></div>' +
+    '<div class="stCell"><div class="stV">'+streakDays(days)+'</div><div class="stL">Day streak</div></div>' +
+    '<div class="stCell"><div class="stV">'+fmtDur(days[todayKey()]||0)+'</div><div class="stL">Today</div></div>' +
+    '<div class="stCell"><div class="stV">'+(pages[todayKey()]||0)+'</div><div class="stL">Pages today</div></div>' +
+    '<div class="stCell"><div class="stV">'+finished+'</div><div class="stL">Finished</div></div>';
+  strip.classList.add('on');
+}
+
+async function renderStatsPanel(){
+  const { days, books, pages } = statsTotals();
+  const all = await dbAll();
+  const byId = {}; all.forEach(b=>byId[b.id]=b);
+  const el = $('#statsBody');
+  const key = x => x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+
+  // ---- last 14 days chart
+  const seq = [];
+  const d0 = new Date();
+  for (let i=13;i>=0;i--){
+    const x = new Date(d0); x.setDate(d0.getDate()-i);
+    seq.push({ k:key(x), s:days[key(x)]||0, p:pages[key(x)]||0, lbl:['S','M','T','W','T','F','S'][x.getDay()], today:i===0 });
+  }
+  const peak = Math.max(60, ...seq.map(x=>x.s));
+  let html = '<div class="setLabel">Last 14 days</div><div class="bars">' +
+    seq.map(x=>'<div class="'+(x.today?'today':(x.s?'has':''))+'" style="height:'+Math.max(2,Math.round(x.s/peak*80))+'px" data-tip="'+x.k+' \u00B7 '+fmtDur(x.s)+' \u00B7 '+x.p+'p"></div>').join('') +
+    '</div><div class="barLbl">' + seq.map(x=>'<span>'+x.lbl+'</span>').join('') + '</div>';
+
+  // ---- totals
+  const totalSec = Object.values(days).reduce((a,b)=>a+b,0);
+  const totalPages = Object.values(pages).reduce((a,b)=>a+b,0);
+  const daysRead = Object.values(days).filter(s=>s>=60).length;
+  html += '<div class="setLabel" style="margin-top:20px">Totals</div>' +
+    '<div class="bkStat"><span class="bn">All time</span><span class="bt">'+fmtDur(totalSec)+'</span></div>' +
+    '<div class="bkStat"><span class="bn">Pages read</span><span class="bt">'+fmtNum(totalPages)+'</span></div>' +
+    '<div class="bkStat"><span class="bn">This week</span><span class="bt">'+fmtDur(weekSeconds(days))+'</span></div>' +
+    '<div class="bkStat"><span class="bn">Current streak</span><span class="bt">'+streakDays(days)+' days</span></div>' +
+    '<div class="bkStat"><span class="bn">Days read</span><span class="bt">'+daysRead+'</span></div>';
+  if (totalSec > 600) html += '<div class="bkStat"><span class="bn">Avg pace</span><span class="bt">'+Math.round(totalPages/(totalSec/3600))+' pages/hr</span></div>';
+
+  // ---- library storage
+  let libWords = 0, libPages = 0, libBytes = 0, libSrc = 0;
+  for (const b of all){ const m = metrics(b); libWords += m.words; libPages += m.pages; libBytes += m.bytes; libSrc += (b.srcSize||0); }
+  let quotaLine = '';
+  try{
+    if (navigator.storage && navigator.storage.estimate){
+      const est = await navigator.storage.estimate();
+      if (est && est.usage) quotaLine = '<div class="bkStat"><span class="bn">Browser storage used</span><span class="bt">'+fmtBytes(est.usage)+
+        (est.quota?(' / '+fmtBytes(est.quota)):'')+'</span></div>';
+    }
+  }catch(e){}
+  html += '<div class="setLabel" style="margin-top:20px">Library</div>' +
+    '<div class="bkStat"><span class="bn">Books</span><span class="bt">'+all.length+'</span></div>' +
+    '<div class="bkStat"><span class="bn">Total pages</span><span class="bt">'+fmtNum(libPages)+'</span></div>' +
+    '<div class="bkStat"><span class="bn">Total words</span><span class="bt">'+fmtNum(libWords)+'</span></div>' +
+    '<div class="bkStat"><span class="bn">Converted text</span><span class="bt">'+fmtBytes(libBytes)+'</span></div>' +
+    (libSrc?'<div class="bkStat"><span class="bn">Source files were</span><span class="bt">'+fmtBytes(libSrc)+'</span></div>':'') +
+    quotaLine;
+
+  // ---- per book
+  const ranked = Object.entries(books).sort((a,b)=>b[1]-a[1]);
+  if (ranked.length){
+    html += '<div class="setLabel" style="margin-top:20px">Time per book</div>';
+    for (const [id, s] of ranked){
+      const b = byId[id];
+      const p = getPos(id);
+      const pct = p ? Math.round((p.o||0)*100) : 0;
+      html += '<div class="bkStat"><span class="bn">'+esc(b?b.title:'(removed)')+(pct>=98?' \u2713':'')+
+        '</span><span class="bt">'+fmtDur(s)+' \u00B7 '+pct+'%</span></div>';
+    }
+  }
+
+  // ---- day by day history
+  const histDays = Object.keys(days).filter(k=>days[k]>0).sort().reverse().slice(0,60);
+  if (histDays.length){
+    html += '<div class="setLabel" style="margin-top:20px">History</div>';
+    const today = key(new Date());
+    for (const k of histDays){
+      const dt = new Date(k+'T00:00:00');
+      const lbl = dt.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+      html += '<div class="dayRow'+(k===today?' today':'')+'"><span class="dd">'+esc(lbl)+'</span>' +
+        '<span class="dv">'+fmtDur(days[k])+(pages[k]?(' \u00B7 '+pages[k]+'p'):'')+'</span></div>';
+    }
+  }
+
+  el.innerHTML = html;
+}
 
 /* ---------- TOC + bookmarks ---------- */
+const ANN_COLORS = { yellow:'#ffd600', green:'#40dc78', blue:'#46aaff', under:'#ffaa00' };
 function buildToc(){
   const list = $('#tocList'); list.innerHTML='';
   const bms = getBms(current.id);
@@ -796,6 +1390,26 @@ function buildToc(){
       row.appendChild(b); row.appendChild(x); list.appendChild(row);
     });
   }
+  const anns = getAnns(current.id).slice().sort((a,b)=> a.ci-b.ci || a.pi-b.pi || a.start-b.start);
+  if (anns.length){
+    const lbl = document.createElement('div'); lbl.className='secLabel';
+    lbl.textContent = 'Notes & highlights (' + anns.length + ')';
+    list.appendChild(lbl);
+    for (const a of anns){
+      const row = document.createElement('div'); row.className='bmRow';
+      const b = document.createElement('button'); b.className='tocItem';
+      const swatch = a.color==='under' ? '\u2014' : '\u25A0';
+      b.innerHTML = '<span style="color:'+ANN_COLORS[a.color]+'">'+swatch+'</span> ' +
+        esc(a.text.slice(0,52)) + (a.text.length>52?'\u2026':'') +
+        (a.note ? '<div style="color:var(--cyan);font-size:10px;margin-top:3px">\u270E '+esc(a.note.slice(0,60))+'</div>' : '');
+      b.addEventListener('click', ()=>{ closePanels(); jumpTo(a.ci, a.pi, true); });
+      const x = document.createElement('button'); x.className='x'; x.innerHTML='&#9998;';
+      x.title = 'Edit note';
+      x.addEventListener('click', ()=>{ closePanels(); openNote(a); });
+      row.appendChild(b); row.appendChild(x); list.appendChild(row);
+    }
+  }
+
   const lbl2 = document.createElement('div'); lbl2.className='secLabel'; lbl2.textContent='Chapters'; list.appendChild(lbl2);
   current.chapters.forEach((ch,i)=>{
     const b = document.createElement('button'); b.className='tocItem'; b.textContent = ch.title;
@@ -920,6 +1534,7 @@ const localPosIds = () => {
     const k = localStorage.key(i);
     if (k.startsWith('nr3.pos.')) ids.push(k.slice(8));
     else if (k.startsWith('nr3.bm.')) ids.push(k.slice(7));
+    else if (k.startsWith('nr3.an.')) ids.push(k.slice(7));
   }
   return ids;
 };
@@ -1000,9 +1615,10 @@ async function syncNow(silent){
       }
     }
     // merge positions + bookmarks, newest timestamp wins
-    const remote = idx.state || {}; remote.pos = remote.pos||{}; remote.bm = remote.bm||{};
-    const merged = { pos:{}, bm:{} };
-    const ids = new Set([...Object.keys(remote.pos), ...Object.keys(remote.bm), ...localPosIds()]);
+    const remote = idx.state || {};
+    remote.pos = remote.pos||{}; remote.bm = remote.bm||{}; remote.an = remote.an||{}; remote.stats = remote.stats||{};
+    const merged = { pos:{}, bm:{}, an:{}, stats:{} };
+    const ids = new Set([...Object.keys(remote.pos), ...Object.keys(remote.bm), ...Object.keys(remote.an), ...localPosIds()]);
     for (const id of ids){
       if (deleted.has(id)) continue;
       const lp = getPos(id), rp = remote.pos[id];
@@ -1012,11 +1628,24 @@ async function syncNow(silent){
       const rb = remote.bm[id];
       const bm = (rb && rb.t > lb.t) ? rb : (lb.t || lb.a.length ? lb : rb);
       if (bm && bm.a && bm.a.length !== undefined){ merged.bm[id] = bm; setBmsRawQuiet(id, bm); }
+      const la = { a:getAnns(id), t:getAnnT(id) };
+      const ra = remote.an[id];
+      const an = (ra && (ra.t||0) > la.t) ? ra : ((la.t || la.a.length) ? la : ra);
+      if (an && an.a && an.a.length !== undefined){ merged.an[id] = an; setAnnsRawQuiet(id, an); }
     }
+    // stats merge per device, so two machines sum instead of overwriting
+    const ls = getStats();
+    for (const dev of new Set([...Object.keys(remote.stats), ...Object.keys(ls)])){
+      const mine = ls[dev], theirs = remote.stats[dev];
+      const pick = (mine && theirs) ? (((theirs.t||0) > (mine.t||0)) ? theirs : mine) : (mine || theirs);
+      if (pick) merged.stats[dev] = pick;
+    }
+    setStats(merged.stats);
     await api('/api/state', {method:'PUT', body: JSON.stringify(merged)});
     setSyncStatus('synced '+new Date().toLocaleTimeString());
     renderLib();
-    if (current) buildToc();
+    renderStatsStrip();
+    if (current){ buildToc(); paintAnnotations(); }
   }catch(e){
     console.error(e);
     setSyncStatus('sync failed \u2014 '+(e.message||'network'));
@@ -1061,12 +1690,13 @@ async function exportZip(b){
    ============================================================ */
 async function buildBackupPayload(){
   const books = await dbAll();
-  const positions = {}, bookmarks = {};
+  const positions = {}, bookmarks = {}, annotations = {};
   for (const b of books){
     const p = getPos(b.id); if (p) positions[b.id] = p;
     const a = getBms(b.id); if (a && a.length) bookmarks[b.id] = { a, t: getBmT(b.id) };
+    const n = getAnns(b.id); if (n && n.length) annotations[b.id] = { a:n, t: getAnnT(b.id) };
   }
-  return { neinerreader_backup:1, exported:Date.now(), books, positions, bookmarks };
+  return { neinerreader_backup:1, exported:Date.now(), books, positions, bookmarks, annotations, stats:getStats() };
 }
 
 /* merge a payload in; newest timestamp wins so nothing rolls backward */
@@ -1081,6 +1711,17 @@ async function applyBackupPayload(data){
   for (const id of Object.keys(data.bookmarks || {})){
     const inc = data.bookmarks[id];
     if ((inc.t||0) > getBmT(id)) setBmsRawQuiet(id, inc);
+  }
+  for (const id of Object.keys(data.annotations || {})){
+    const inc = data.annotations[id];
+    if ((inc.t||0) > getAnnT(id)) setAnnsRawQuiet(id, inc);
+  }
+  if (data.stats){
+    const ls = getStats();
+    for (const dev of Object.keys(data.stats)){
+      if (!ls[dev] || (data.stats[dev].t||0) > (ls[dev].t||0)) ls[dev] = data.stats[dev];
+    }
+    setStats(ls);
   }
   return n;
 }
@@ -1208,6 +1849,161 @@ function renderVersion(){
   });
 }
 
+/* ---------- notes export / import ---------- */
+function exportNotes(b){
+  const anns = getAnns(b.id);
+  if (!anns.length){ toast('No notes in this book yet'); return; }
+  const payload = {
+    neinerreader_notes: 1, book: b.title, bookId: b.id, exported: Date.now(),
+    annotations: anns.map(a=>({ cfi:'ch'+a.ci+'/p'+a.pi+':'+a.start+'-'+a.end,
+      ci:a.ci, pi:a.pi, start:a.start, end:a.end,
+      text:a.text, note:a.note||'', color:a.color, timestamp:a.t }))
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (b.title.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'book') + '_notes.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+  toast(anns.length + ' notes exported');
+}
+
+async function importNotes(file){
+  if (!current) return;
+  try{
+    const d = JSON.parse(await file.text());
+    const incoming = d.annotations || d;
+    if (!Array.isArray(incoming)) throw new Error('no annotation array');
+    const list = getAnns(current.id);
+    const seen = new Set(list.map(a=>a.ci+':'+a.pi+':'+a.start+':'+a.end));
+    let n = 0;
+    for (const a of incoming){
+      let { ci, pi, start, end } = a;
+      if (ci === undefined && typeof a.cfi === 'string'){    // parse our cfi-ish string
+        const m = a.cfi.match(/ch(\d+)\/p(\d+):(\d+)-(\d+)/);
+        if (m){ ci=+m[1]; pi=+m[2]; start=+m[3]; end=+m[4]; }
+      }
+      if ([ci,pi,start,end].some(v=>typeof v !== 'number')) continue;
+      const key = ci+':'+pi+':'+start+':'+end;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push({ id:'an_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+        ci, pi, start, end, text:a.text||'', note:a.note||'', color:a.color||'yellow', t:a.timestamp||Date.now() });
+      n++;
+    }
+    setAnns(current.id, list);
+    renderView(currentFrac()); buildToc();
+    toast(n ? n+' notes imported' : 'Nothing new to import');
+  }catch(e){ console.error(e); toast('Import failed \u2014 '+(e.message||'bad file')); }
+}
+
+/* ============================================================
+   BOOK PANEL — everything about one book, reachable from the
+   library: continue, bookmarks, notes, exports, details, delete.
+   ============================================================ */
+async function openBookPanel(b){
+  const el = $('#bookBody2');
+  const m = metrics(b);
+  const pos = getPos(b.id);
+  const pct = pos ? Math.round((pos.o||0)*100) : 0;
+  const { books } = statsTotals();
+  const readSec = books[b.id] || 0;
+  const pagesRead = Math.round((pos ? (pos.o||0) : 0) * m.pages);
+  const bms = getBms(b.id);
+  const anns = getAnns(b.id);
+
+  let h = '<div id="bpTitle">'+esc(b.title)+'</div>' +
+    '<div id="bpAuthor">'+esc(b.author||'Unknown author')+'</div>' +
+    '<div class="bpBar"><div style="width:'+pct+'%"></div></div>' +
+    '<div style="font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-bottom:14px">' +
+      pct+'% \u00B7 PAGE '+pagesRead+' OF '+m.pages + (readSec?(' \u00B7 '+fmtDur(readSec)+' READ'):'') + '</div>' +
+    '<div class="bpBig">' +
+      '<button id="bpOpen">'+(pct>0?'CONTINUE':'START')+'</button>' +
+      (pct>0?'<button id="bpRestart" style="flex:0 0 auto;border-color:var(--line);background:var(--panel-2);color:var(--txt-dim)">RESTART</button>':'') +
+    '</div>';
+
+  h += '<div class="bpGrid">' +
+    '<div class="bpCell"><div class="bpV">'+fmtNum(m.pages)+'</div><div class="bpL">Pages (est)</div></div>' +
+    '<div class="bpCell"><div class="bpV">'+fmtNum(m.words)+'</div><div class="bpL">Words</div></div>' +
+    '<div class="bpCell"><div class="bpV">'+b.chapters.length+'</div><div class="bpL">Chapters</div></div>' +
+    '<div class="bpCell"><div class="bpV">'+fmtDur(readSec)+'</div><div class="bpL">Time read</div></div>' +
+    '<div class="bpCell"><div class="bpV">'+fmtBytes(m.bytes)+'</div><div class="bpL">Text size</div></div>' +
+    '<div class="bpCell"><div class="bpV">'+(b.srcSize?fmtBytes(b.srcSize):'\u2014')+'</div><div class="bpL">Source file</div></div>' +
+    '</div>';
+
+  if (b.file) h += '<div style="font-size:10px;color:var(--txt-dim);margin:-8px 0 16px;overflow:hidden;text-overflow:ellipsis">FROM '+esc(b.file)+'</div>';
+
+  el.innerHTML = h;
+
+  // ---- bookmarks
+  const bmWrap = document.createElement('div');
+  const bl = document.createElement('div'); bl.className='secLabel';
+  bl.textContent = '\u2605 Bookmarks (' + bms.length + ')';
+  bmWrap.appendChild(bl);
+  if (!bms.length){
+    const e = document.createElement('div');
+    e.style.cssText = 'font-size:10px;color:var(--txt-dim);padding:4px 0 8px';
+    e.textContent = 'None yet \u2014 tap \u2605 while reading to pin a spot.';
+    bmWrap.appendChild(e);
+  }
+  bms.forEach((bm,i)=>{
+    const row = document.createElement('div'); row.className='bmRow';
+    const btn = document.createElement('button'); btn.className='tocItem'; btn.textContent = '\u2605 ' + bm.label;
+    btn.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch: bm.ch, p: bm.p }); });
+    const x = document.createElement('button'); x.className='x'; x.innerHTML='&#10005;';
+    x.addEventListener('click', ()=>{ const a=getBms(b.id); a.splice(i,1); setBms(b.id,a); openBookPanel(b); });
+    row.appendChild(btn); row.appendChild(x); bmWrap.appendChild(row);
+  });
+  el.appendChild(bmWrap);
+
+  // ---- notes
+  if (anns.length){
+    const nl = document.createElement('div'); nl.className='secLabel';
+    nl.style.marginTop = '16px';
+    nl.textContent = 'Notes & highlights (' + anns.length + ')';
+    el.appendChild(nl);
+    anns.slice().sort((x,y)=>x.ci-y.ci||x.pi-y.pi).forEach(a=>{
+      const btn = document.createElement('button'); btn.className='tocItem';
+      btn.innerHTML = '<span style="color:'+ANN_COLORS[a.color]+'">\u25A0</span> ' +
+        esc(a.text.slice(0,46)) + (a.text.length>46?'\u2026':'') +
+        (a.note?'<div style="color:var(--cyan);font-size:10px;margin-top:3px">\u270E '+esc(a.note.slice(0,54))+'</div>':'');
+      btn.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch:a.ci, jump:{ci:a.ci, pi:a.pi} }); });
+      el.appendChild(btn);
+    });
+  }
+
+  // ---- exports + delete
+  const ex = document.createElement('div');
+  ex.innerHTML = '<div class="secLabel" style="margin-top:18px">Export</div>' +
+    '<div class="row">' +
+      '<button class="chip" data-x="html" data-tip="Standalone HTML ebook">HTML</button>' +
+      '<button class="chip" data-x="txt" data-tip="Plain text, one file">TXT</button>' +
+      '<button class="chip" data-x="zip" data-tip="One .txt per chapter">ZIP</button>' +
+      '<button class="chip" data-x="notes" data-tip="Highlights + notes as JSON">NOTES</button>' +
+    '</div>' +
+    '<button class="bpDel">REMOVE FROM LIBRARY</button>';
+  el.appendChild(ex);
+
+  ex.querySelector('[data-x=html]').addEventListener('click', ()=>exportHtml(b));
+  ex.querySelector('[data-x=txt]').addEventListener('click', ()=>exportTxt(b));
+  ex.querySelector('[data-x=zip]').addEventListener('click', ()=>exportZip(b));
+  ex.querySelector('[data-x=notes]').addEventListener('click', ()=>exportNotes(b));
+  ex.querySelector('.bpDel').addEventListener('click', async ()=>{
+    if (!confirm('Remove "'+b.title+'" from the library?\n\nBookmarks and notes for it go too.')) return;
+    await dbDel(b.id);
+    ['pos','bm','bmt','an','ant','pgm'].forEach(k=>localStorage.removeItem('nr3.'+k+'.'+b.id));
+    if (syncConfigured()){ try{ await api('/api/book/'+encodeURIComponent(b.id), {method:'DELETE'}); }catch(e){} }
+    markDirty(); autosaveNow(true);
+    closePanels(); renderLib(); renderStatsStrip();
+  });
+
+  $('#bpOpen').addEventListener('click', ()=>{ closePanels(); openBook(b.id); });
+  const rs = $('#bpRestart');
+  if (rs) rs.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch:0, p:0 }); });
+
+  openPanel('bookPanel');
+}
+
 /* ---------- panels & wiring ---------- */
 function closePanels(){ $$('.panel').forEach(p=>p.classList.remove('open')); $('#scrim').classList.remove('on'); }
 function openPanel(id){ closePanels(); $('#'+id).classList.add('open'); $('#scrim').classList.add('on'); }
@@ -1216,6 +2012,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   await openDB();
   renderVersion();
   renderLib();
+  renderStatsStrip();
   applySettings();
 
   $('#addBtn').addEventListener('click', ()=>$('#fileInput').click());
@@ -1245,6 +2042,62 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   });
 
   $('#libSetBtn').addEventListener('click', ()=>openPanel('setPanel'));
+  $('#statsStrip').addEventListener('click', ()=>{ renderStatsPanel(); openPanel('statsPanel'); });
+  $('#srBtn').addEventListener('click', ()=>{
+    openPanel('searchPanel');
+    setTimeout(()=>$('#searchIn').focus(), 60);
+  });
+  let srT;
+  $('#searchIn').addEventListener('input', e=>{ clearTimeout(srT); const v=e.target.value; srT=setTimeout(()=>runSearch(v), 180); });
+
+  // selection toolbar
+  const onSel = () => {
+    if (!current || $('#noteModal').classList.contains('on')) return;
+    const info = readSelection();
+    if (!info){ hideSelBar(); return; }
+    pendingSel = info; showSelBar(info);
+  };
+  document.addEventListener('mouseup', ()=>setTimeout(onSel, 10));
+  document.addEventListener('touchend', ()=>setTimeout(onSel, 10));
+  document.addEventListener('selectionchange', ()=>{
+    const s = window.getSelection();
+    if (!s || s.isCollapsed) hideSelBar();
+  });
+  $$('#selBar .selc').forEach(b=>b.addEventListener('click', ()=>addHighlight(b.dataset.color)));
+  $('#selNote').addEventListener('click', ()=>{
+    if (!pendingSel) return;
+    const a = addHighlight('yellow');
+    if (a) openNote(a);
+  });
+  $('#selDefine').addEventListener('click', ()=>{
+    if (!pendingSel) return;
+    const w = pendingSel.text.trim().split(/\s+/)[0];
+    define(w);
+    $('#selBar').classList.remove('on');
+  });
+  $('#selCopy').addEventListener('click', async ()=>{
+    if (!pendingSel) return;
+    try{ await navigator.clipboard.writeText(pendingSel.text); toast('Copied'); }catch(e){ toast('Copy blocked by browser'); }
+    window.getSelection().removeAllRanges(); hideSelBar();
+  });
+  $('#dictClose').addEventListener('click', ()=>$('#dictPop').classList.remove('on'));
+
+  // tapping an existing highlight edits its note
+  $('#bookBody').addEventListener('click', e=>{
+    const m = e.target.closest('mark[data-an]');
+    if (!m || !current) return;
+    const a = getAnns(current.id).find(x=>x.id===m.dataset.an);
+    if (a) openNote(a);
+  });
+
+  $('#nmSave').addEventListener('click', saveNote);
+  $('#nmCancel').addEventListener('click', closeNote);
+  $('#nmDel').addEventListener('click', deleteAnn);
+  $('#noteModal').addEventListener('click', e=>{ if (e.target.id==='noteModal') closeNote(); });
+
+  $('#exNotes').addEventListener('click', ()=>{ if(current) exportNotes(current); });
+  $('#imNotes').addEventListener('click', ()=>$('#noteInput').click());
+  $('#noteInput').addEventListener('change', e=>{ if(e.target.files[0]) importNotes(e.target.files[0]); e.target.value=''; });
   $('#backBtn').addEventListener('click', closeBook);
   $('#tocBtn').addEventListener('click', ()=>openPanel('tocPanel'));
   $('#setBtn').addEventListener('click', ()=>openPanel('setPanel'));
@@ -1286,12 +2139,16 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   // pull remote progress whenever you come back to the tab — this is what
   // makes "phone then desktop" land on the right page without a button press
   document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden) statsStop(); else statsStart();
     if (!document.hidden && syncConfigured() && !current) syncNow(true);
   });
 
   window.addEventListener('keydown', e=>{
     if (e.target.matches('input,select,textarea')) return;
-    if (e.key==='Escape'){ closePanels(); }
+    if (e.key==='Escape'){
+      if ($('#noteModal').classList.contains('on')) closeNote();
+      else { closePanels(); hideSelBar(); $('#dictPop').classList.remove('on'); }
+    }
   });
 });
 </script>
