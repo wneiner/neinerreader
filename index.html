@@ -170,6 +170,7 @@ mark.hl.hasNote{box-shadow:0 0 0 1px rgba(255,170,0,.65)}
 /* ============ SELECTION TOOLBAR ============ */
 #selBar{
   position:fixed;z-index:55;display:none;gap:6px;align-items:center;
+  flex-wrap:wrap;max-width:calc(100vw - 16px);
   background:var(--panel);border:1px solid var(--line);border-radius:6px;
   padding:6px;box-shadow:0 8px 26px rgba(0,0,0,.6);
 }
@@ -257,7 +258,7 @@ mark.hl.hasNote{box-shadow:0 0 0 1px rgba(255,170,0,.65)}
   transition:opacity .15s,transform .15s,visibility .15s;
   box-shadow:0 10px 30px rgba(0,0,0,.6);cursor:default;
 }
-#verBadge:hover #verTip,#verBadge:focus #verTip,#verTip:hover{opacity:1;visibility:visible;transform:translateY(0)}
+#verBadge:hover #verTip,#verBadge:focus #verTip,#verBadge.open #verTip,#verTip:hover{opacity:1;visibility:visible;transform:translateY(0)}
 #verTip .rel{margin-bottom:10px}
 #verTip .rel:last-child{margin-bottom:0}
 #verTip .rv{color:var(--amber);font-size:10px;letter-spacing:1px}
@@ -288,7 +289,37 @@ mark.hl.hasNote{box-shadow:0 0 0 1px rgba(255,170,0,.65)}
   .panelBody{padding:12px}
   .swatch{width:38px;height:38px}
 }
+@media (max-width:620px){
+  /* stats strip: 5 cells have to share ~300px */
+  .stCell{padding:8px 3px}
+  .stV{font-size:11px;letter-spacing:0}
+  .stL{font-size:7px;letter-spacing:.5px}
+  .stCell .stV,.stCell .stL{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* selection toolbar: allow a second row rather than running off screen */
+  #selBar{max-width:calc(100vw - 16px);flex-wrap:wrap;justify-content:center}
+  .selc{width:24px;height:24px}
+  .selAct{padding:5px 7px;font-size:9px}
+
+  /* version tooltip was anchored to the badge and clipped at every phone
+     width -- pin it to the viewport instead */
+  #verTip{position:fixed;left:12px;right:12px;top:64px;width:auto;max-width:none;transform:none}
+  #verBadge:hover #verTip,#verBadge:focus #verTip,#verBadge.open #verTip,#verTip:hover{transform:none}
+
+  /* dictionary + note modal */
+  #dictPop{width:auto;left:12px !important;right:12px;max-width:none}
+  .nmBox{padding:12px}
+  #nmText{height:104px}
+
+  /* book panel */
+  .bpV{font-size:11px}
+  .bpCell{padding:8px}
+  .bpBig button{padding:10px 8px;font-size:10px}
+}
 @media (max-width:380px){
+  .stV{font-size:10px}
+  .stL{font-size:6px}
+  .stCell{padding:7px 2px}
   .btn{padding:8px 9px;font-size:10px}
   #libHeader{gap:6px}
   .swatch{width:34px;height:34px}
@@ -519,6 +550,11 @@ const SYNC_CONFIG = {
    ##  this list automatically.                               ##
    ############################################################ */
 const CHANGELOG = [
+  { v:'4.2', d:'2026-07-17', notes:[
+    'Mobile: stats strip, selection toolbar and version tooltip no longer overflow',
+    'Version tooltip is viewport-pinned instead of clipped',
+    'Dictionary popup spans the screen on phones',
+  ]},
   { v:'4.1', d:'2026-07-17', notes:[
     'Book panel: bookmarks, notes and exports reachable from the library',
     'Export buttons merged into one options button per book',
@@ -1835,18 +1871,9 @@ function renderVersion(){
   ).join('');
   badge.title = 'v' + VERSION + ' \u2014 tap or hover for what changed';
   // touch: tap toggles (no hover on phones)
-  badge.addEventListener('click', e=>{
-    e.stopPropagation();
-    badge.classList.toggle('open');
-    tip.style.visibility = badge.classList.contains('open') ? 'visible' : '';
-    tip.style.opacity = badge.classList.contains('open') ? '1' : '';
-    tip.style.transform = badge.classList.contains('open') ? 'translateY(0)' : '';
-  });
-  document.addEventListener('click', ()=>{
-    if (!badge.classList.contains('open')) return;
-    badge.classList.remove('open');
-    tip.style.visibility=''; tip.style.opacity=''; tip.style.transform='';
-  });
+  badge.addEventListener('click', e=>{ e.stopPropagation(); badge.classList.toggle('open'); });
+  document.addEventListener('click', ()=>badge.classList.remove('open'));
+  tip.addEventListener('click', e=>e.stopPropagation());
 }
 
 /* ---------- notes export / import ---------- */
