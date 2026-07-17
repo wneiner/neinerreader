@@ -238,8 +238,12 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
       <input class="textIn" id="syncKey" type="password" placeholder="sync key" autocomplete="off">
       <div class="row">
         <button class="chip" id="syncNowBtn">SYNC NOW</button>
+        <button class="chip" id="syncLinkBtn">COPY SETUP LINK</button>
       </div>
       <div id="syncStatus">not configured</div>
+      <div style="font-size:10px;color:var(--txt-dim);margin-top:6px;line-height:1.5">
+        Open the setup link once on any other browser or machine and it configures itself.
+      </div>
     </div>
   </div>
 </div>
@@ -776,6 +780,41 @@ const localPosIds = () => {
   return ids;
 };
 
+/* one-link setup: opening <app-url>#sync=<blob> configures a device
+   and then scrubs the hash out of the address bar */
+function consumeSyncLink(){
+  const m = (location.hash||'').match(/^#sync=(.+)$/);
+  if (!m) return false;
+  try{
+    const b64 = decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/');
+    const cfg = JSON.parse(atob(b64));
+    if (cfg.u && cfg.k){
+      settings.syncUrl = cfg.u; settings.syncKey = cfg.k; saveSettings();
+      history.replaceState(null, '', location.pathname + location.search);
+      toast('Sync configured on this device');
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+function syncLink(){
+  const blob = btoa(JSON.stringify({ u: settings.syncUrl, k: settings.syncKey }))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return location.origin + location.pathname + '#sync=' + blob;
+}
+
+async function copySyncLink(){
+  if (!syncConfigured()){ toast('Set the sync URL and key first'); return; }
+  const link = syncLink();
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('Setup link copied \u2014 open it once on any device');
+  }catch(e){
+    prompt('Copy this link and open it on your other devices:', link);
+  }
+}
+
 function scheduleSync(){
   if (!syncConfigured()) return;
   clearTimeout(syncTimer);
@@ -1056,7 +1095,16 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   $('#syncUrl').addEventListener('change', e=>{ settings.syncUrl = e.target.value.trim(); saveSettings(); });
   $('#syncKey').addEventListener('change', e=>{ settings.syncKey = e.target.value.trim(); saveSettings(); });
   $('#syncNowBtn').addEventListener('click', ()=>syncNow(false));
+  $('#syncLinkBtn').addEventListener('click', copySyncLink);
+  consumeSyncLink();
+  $('#syncUrl').value = settings.syncUrl; $('#syncKey').value = settings.syncKey;
   if (syncConfigured()){ setSyncStatus('configured'); syncNow(true); }
+
+  // pull remote progress whenever you come back to the tab — this is what
+  // makes "phone then desktop" land on the right page without a button press
+  document.addEventListener('visibilitychange', ()=>{
+    if (!document.hidden && syncConfigured() && !current) syncNow(true);
+  });
 
   window.addEventListener('keydown', e=>{
     if (e.target.matches('input,select,textarea')) return;
