@@ -119,6 +119,32 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);font-size:11px;color:var(--txt)}
 .chip.sel{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
 
+/* ============ VERSION BADGE + TOOLTIP ============ */
+#verBadge{
+  position:relative;display:inline-block;margin-left:8px;cursor:help;
+  padding:1px 6px;border:1px solid var(--line);border-radius:3px;
+  color:var(--cyan);font-size:9px;letter-spacing:.5px;vertical-align:middle;
+}
+#verBadge:hover,#verBadge:focus{border-color:var(--cyan);outline:none}
+#verTip{
+  position:absolute;left:0;top:calc(100% + 8px);z-index:60;
+  width:320px;max-width:78vw;max-height:60vh;overflow-y:auto;
+  background:var(--panel);border:1px solid var(--cyan);border-radius:6px;
+  padding:12px 14px;text-align:left;
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .15s,transform .15s,visibility .15s;
+  box-shadow:0 10px 30px rgba(0,0,0,.6);cursor:default;
+}
+#verBadge:hover #verTip,#verBadge:focus #verTip,#verTip:hover{opacity:1;visibility:visible;transform:translateY(0)}
+#verTip .rel{margin-bottom:10px}
+#verTip .rel:last-child{margin-bottom:0}
+#verTip .rv{color:var(--amber);font-size:10px;letter-spacing:1px}
+#verTip .rd{color:var(--txt-dim);font-size:9px;margin-left:6px}
+#verTip ul{margin:4px 0 0;padding-left:14px}
+#verTip li{color:var(--txt);font-size:10px;line-height:1.55;letter-spacing:0}
+#verTip .rel:first-child li{color:var(--cyan)}
+@media (hover:none){ #verTip{width:260px} }
+
 /* ============ RESPONSIVE ============ */
 @media (max-width:620px){
   #libView{padding:0 12px 80px}
@@ -171,7 +197,9 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
   <header id="libHeader">
     <div>
       <div id="logo">NEINER<span class="sl">//</span><span class="rd">READER</span></div>
-      <div id="libSub">TEXT ENGINE &middot; EPUB + PDF &rarr; HTML</div>
+      <div id="libSub">TEXT ENGINE &middot; EPUB + PDF &rarr; HTML
+        <span id="verBadge" tabindex="0" role="button" aria-label="Version history">v0.0<span id="verTip"></span></span>
+      </div>
       <div id="libSync" style="font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-top:3px"></div>
     </div>
     <div class="spacer"></div>
@@ -311,6 +339,47 @@ const SYNC_CONFIG = {
   key: 'Peviri21Perula87Locapu37',
 };
 /* ######################################################### */
+
+/* ############################################################
+   ##  VERSION LOG  --  newest first. Add a line when you     ##
+   ##  change something; the badge and tooltip update from    ##
+   ##  this list automatically.                               ##
+   ############################################################ */
+const CHANGELOG = [
+  { v:'3.6', d:'2026-07-17', notes:[
+    'Mobile: library header no longer runs off screen (added breakpoints)',
+    'Reading toolbar trimmed 6 buttons to 4; exports moved into Settings',
+    'Version badge with changelog tooltip',
+  ]},
+  { v:'3.5', d:'2026-07-17', notes:[
+    'Book IDs are now a SHA-256 of the file, so books can never collide',
+    'Library rows show the source filename',
+    'Worker: fixed books vanishing (KV eventual-consistency race on the index)',
+  ]},
+  { v:'3.4', d:'2026-07-17', notes:[
+    'Sync URL + key can be embedded in the file: zero setup per device',
+    'Settings reachable from the library (gear was reading-view only)',
+    'Live sync status under the logo',
+  ]},
+  { v:'3.3', d:'2026-07-17', notes:[
+    'Cross-device sync via Cloudflare Worker + KV',
+    'One-link device setup; auto-resync when returning to the tab',
+  ]},
+  { v:'3.2', d:'2026-07-17', notes:[
+    'Chapter-at-a-time rendering: fixes "Edge removed some content"',
+    'Position memory now stores chapter + spot',
+    'Desktop: 30s auto-save to a file you choose',
+  ]},
+  { v:'3.1', d:'2026-07-17', notes:[
+    'Backup / restore the whole library to one JSON file',
+    'Per-chapter ZIP export; plain TXT export',
+  ]},
+  { v:'3.0', d:'2026-07-17', notes:[
+    'Text engine: converts EPUB + PDF to flat HTML for Edge Read Aloud',
+    'Chapters, bookmarks, last-position memory, themes, typography',
+  ]},
+];
+const VERSION = CHANGELOG[0].v;
 
 /* ============================================================
    NEINER//READER v3 — TEXT ENGINE
@@ -793,6 +862,7 @@ function exportHtml(b){
     '</style></head><body>' +
     '<h1>'+esc(b.title)+'</h1>' + (b.author ? '<p><em>'+esc(b.author)+'</em></p>' : '') +
     '<nav><ol>'+toc+'</ol></nav>' + bodyHtml +
+    '<!-- exported by NEINER//READER v' + VERSION + ' -->' +
     '<script>(function(){var k='+JSON.stringify(posKey)+';' +
     'var m=function(){return document.documentElement.scrollHeight-innerHeight};' +
     'addEventListener("load",function(){var p=+localStorage.getItem(k)||0;if(p&&m()>0)scrollTo(0,p*m())});' +
@@ -1112,12 +1182,39 @@ async function autosaveNow(force){
 setInterval(()=>autosaveNow(false), 30000);
 window.addEventListener('beforeunload', ()=>{ if (autoOn && dirty) autosaveNow(true); });
 
+/* ---------- version badge ---------- */
+function renderVersion(){
+  const badge = $('#verBadge');
+  if (!badge) return;
+  badge.firstChild.nodeValue = 'v' + VERSION;
+  const tip = $('#verTip');
+  tip.innerHTML = CHANGELOG.map(r =>
+    '<div class="rel"><span class="rv">v'+esc(r.v)+'</span><span class="rd">'+esc(r.d)+'</span>' +
+    '<ul>' + r.notes.map(n=>'<li>'+esc(n)+'</li>').join('') + '</ul></div>'
+  ).join('');
+  badge.title = 'v' + VERSION + ' \u2014 tap or hover for what changed';
+  // touch: tap toggles (no hover on phones)
+  badge.addEventListener('click', e=>{
+    e.stopPropagation();
+    badge.classList.toggle('open');
+    tip.style.visibility = badge.classList.contains('open') ? 'visible' : '';
+    tip.style.opacity = badge.classList.contains('open') ? '1' : '';
+    tip.style.transform = badge.classList.contains('open') ? 'translateY(0)' : '';
+  });
+  document.addEventListener('click', ()=>{
+    if (!badge.classList.contains('open')) return;
+    badge.classList.remove('open');
+    tip.style.visibility=''; tip.style.opacity=''; tip.style.transform='';
+  });
+}
+
 /* ---------- panels & wiring ---------- */
 function closePanels(){ $$('.panel').forEach(p=>p.classList.remove('open')); $('#scrim').classList.remove('on'); }
 function openPanel(id){ closePanels(); $('#'+id).classList.add('open'); $('#scrim').classList.add('on'); }
 
 window.addEventListener('DOMContentLoaded', async ()=>{
   await openDB();
+  renderVersion();
   renderLib();
   applySettings();
 
