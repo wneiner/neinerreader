@@ -142,11 +142,13 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
     <div>
       <div id="logo">NEINER<span class="sl">//</span><span class="rd">READER</span></div>
       <div id="libSub">TEXT ENGINE &middot; EPUB + PDF &rarr; HTML</div>
+      <div id="libSync" style="font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-top:3px"></div>
     </div>
     <div class="spacer"></div>
     <button class="btn" id="addBtn">+ ADD BOOK</button>
     <button class="btn ghost" id="bkBtn" title="Save library + bookmarks to a file">BACKUP</button>
     <button class="btn ghost" id="rsBtn" title="Restore library from a backup file">RESTORE</button>
+    <button class="btn ghost" id="libSetBtn" title="Settings &amp; sync">&#9881;</button>
     <input type="file" id="fileInput" accept=".epub,.pdf,application/epub+zip,application/pdf" multiple hidden>
     <input type="file" id="bkInput" accept=".json,application/json" hidden>
   </header>
@@ -241,7 +243,7 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
         <button class="chip" id="syncLinkBtn">COPY SETUP LINK</button>
       </div>
       <div id="syncStatus">not configured</div>
-      <div style="font-size:10px;color:var(--txt-dim);margin-top:6px;line-height:1.5">
+      <div style="font-size:10px;color:var(--txt-dim);margin-top:6px;line-height:1.5" id="syncNote">
         Open the setup link once on any other browser or machine and it configures itself.
       </div>
     </div>
@@ -253,6 +255,30 @@ input[type=range].slim::-webkit-slider-thumb{-webkit-appearance:none;width:14px;
 
 <script>
 'use strict';
+
+/* ############################################################
+   ##  SYNC CONFIG  --  EDIT THESE TWO LINES, NOTHING ELSE   ##
+   ############################################################
+   Paste your Cloudflare Worker URL and SYNC_KEY here and every
+   browser and device that opens this page syncs automatically,
+   with zero setup. Leave both '' to configure per-device in
+   Settings instead.
+
+   Heads up: index.html is public on GitHub Pages, so anyone who
+   looks can read this key and could read or wipe your library.
+   For a reading list that's usually a fine trade. If it ever
+   bothers you, change SYNC_KEY in Cloudflare and update it here
+   -- that instantly locks out anyone holding the old one.
+   ############################################################ */
+const SYNC_CONFIG = {
+  // <<< PASTE YOUR WORKER URL BETWEEN THESE QUOTES, then upload to GitHub.
+  //     Find it: Cloudflare -> Compute (Workers) -> Workers & Pages ->
+  //     click neinerreader-sync -> the https://....workers.dev at the top.
+  url: '',
+  key: 'Peviri21Perula87Locapu37',
+};
+/* ######################################################### */
+
 /* ============================================================
    NEINER//READER v3 — TEXT ENGINE
    epub/pdf -> plain structured text -> flat HTML reading view.
@@ -763,7 +789,10 @@ function exportTxt(b){
    ============================================================ */
 let syncBusy = false, syncTimer = null;
 const syncConfigured = () => !!(settings.syncUrl && settings.syncKey);
-const setSyncStatus = m => { const el=$('#syncStatus'); if (el) el.textContent = m; };
+const setSyncStatus = m => {
+  const el = $('#syncStatus'); if (el) el.textContent = m;
+  const lib = $('#libSync'); if (lib) lib.textContent = syncConfigured() ? ('SYNC \u00B7 ' + m.toUpperCase()) : '';
+};
 const api = (path, opts) => {
   opts = opts || {};
   const base = settings.syncUrl.replace(/\/+$/,'');
@@ -1073,6 +1102,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     if (books.length) importFiles(books);
   });
 
+  $('#libSetBtn').addEventListener('click', ()=>openPanel('setPanel'));
   $('#backBtn').addEventListener('click', closeBook);
   $('#tocBtn').addEventListener('click', ()=>openPanel('tocPanel'));
   $('#setBtn').addEventListener('click', ()=>openPanel('setPanel'));
@@ -1096,8 +1126,18 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   $('#syncKey').addEventListener('change', e=>{ settings.syncKey = e.target.value.trim(); saveSettings(); });
   $('#syncNowBtn').addEventListener('click', ()=>syncNow(false));
   $('#syncLinkBtn').addEventListener('click', copySyncLink);
+  // baked-in config wins on every load, so all devices stay identical
+  if (SYNC_CONFIG.url && SYNC_CONFIG.key){
+    settings.syncUrl = SYNC_CONFIG.url.replace(/\/+$/,'');
+    settings.syncKey = SYNC_CONFIG.key;
+    saveSettings();
+  }
   consumeSyncLink();
   $('#syncUrl').value = settings.syncUrl; $('#syncKey').value = settings.syncKey;
+  if (SYNC_CONFIG.url && SYNC_CONFIG.key){
+    const n = $('#syncNote');
+    if (n) n.textContent = 'Configured in the HTML file itself \u2014 every device picks this up automatically. Edits here are overwritten on reload.';
+  }
   if (syncConfigured()){ setSyncStatus('configured'); syncNow(true); }
 
   // pull remote progress whenever you come back to the tab — this is what
