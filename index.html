@@ -550,6 +550,17 @@ const SYNC_CONFIG = {
    ##  this list automatically.                               ##
    ############################################################ */
 const CHANGELOG = [
+  { v:'4.4', d:'2026-07-17', notes:[
+    'EPUB now keeps its formatting: bold, italics, headings, lists, poetry lines',
+    'PDF still converts to clean text (PDFs have no formatting to keep)',
+    'Highlighting, notes, search and Read Aloud all still work on formatted text',
+  ]},
+  { v:'4.3', d:'2026-07-17', notes:[
+    'Notes import can anchor by quoted text, not just exact offsets',
+    'Matching ignores whitespace, curly quotes, dashes and case',
+    'Notes carry an optional reference label (e.g. a verse or citation)',
+    'Exported notes include their quote, so they survive a re-conversion',
+  ]},
   { v:'4.2', d:'2026-07-17', notes:[
     'Mobile: stats strip, selection toolbar and version tooltip no longer overflow',
     'Version tooltip is viewport-pinned instead of clipped',
@@ -726,7 +737,6 @@ async function convertEpub(buf, fname){
   const bk = ePub(buf);
   await bk.ready;
   const meta = await bk.loaded.metadata;
-  // toc labels by href for chapter titles
   const labelByHref = {};
   try{
     const nav = await bk.loaded.navigation;
@@ -741,7 +751,7 @@ async function convertEpub(buf, fname){
     try{
       const sdoc = await section.load(bk.load.bind(bk));
       const body = (sdoc.querySelector && (sdoc.querySelector('body') || sdoc.documentElement)) || sdoc;
-      const blocks = extractBlocks(body);
+      const blocks = extractRichBlocks(body);          // {tag, html, text}
       try{ section.unload(); }catch(e){}
       if (!blocks.length) continue;
       let title = labelByHref[(section.href||'').split('#')[0]] || '';
@@ -749,18 +759,75 @@ async function convertEpub(buf, fname){
         const h = blocks.find(b=>/^H[1-4]$/.test(b.tag));
         title = h ? h.text.slice(0,80) : '';
       }
-      const paras = blocks.filter(b=>!(title && /^H[1-4]$/.test(b.tag) && b.text===title)).map(b=>b.text);
-      chapters.push({ title: title || 'Section ' + chapters.length, paras });
+      const kept = blocks.filter(b=>!(title && /^H[1-4]$/.test(b.tag) && b.text===title));
+      chapters.push({
+        title: title || 'Section ' + chapters.length,
+        paras: kept.map(b=>b.text),      // plain text: notes/search/pages anchor here
+        html:  kept.map(b=>b.html),      // rich HTML for rendering (parallel array)
+        rich: true
+      });
     }catch(e){}
   }
   try{ bk.destroy(); }catch(e){}
-  return {
-    title: meta.title || fname.replace(/\.\w+$/,''),
-    author: meta.creator || '',
-    chapters
-  };
+  return { title: meta.title || fname.replace(/\.\w+$/,''), author: meta.creator || '', chapters, format:'epub' };
 }
 
+/* ---- allowed inline formatting; everything else is unwrapped to its text ---- */
+const KEEP_INLINE = /^(EM|I|STRONG|B|U|SUP|SUB|SMALL|MARK|CITE|Q|ABBR|SPAN|BR|CODE|A)$/;
+const HEADING_TAGS = /^(H1|H2|H3|H4|H5|H6)$/;
+
+/* serialise a block's children to sanitised inline HTML */
+function inlineHtml(node){
+  let out = '';
+  for (const c of node.childNodes){
+    if (c.nodeType === 3){ out += escHtml(c.textContent); continue; }
+    if (c.nodeType !== 1) continue;
+    const tag = c.tagName.toUpperCase();
+    if (tag === 'BR'){ out += '<br>'; continue; }
+    // keep the class hooks epubs use for verse/red-letter styling? no -> too varied.
+    // just keep the tag itself for the common inline set, drop the rest but keep text
+    if (KEEP_INLINE.test(tag) && tag !== 'A' && tag !== 'SPAN'){
+      out += '<'+tag.toLowerCase()+'>' + inlineHtml(c) + '</'+tag.toLowerCase()+'>';
+    } else if (tag === 'I' || tag === 'EM'){
+      out += '<em>' + inlineHtml(c) + '</em>';
+    } else {
+      out += inlineHtml(c);   // span, a, div, etc -> keep only the text/children
+    }
+  }
+  return out;
+}
+
+function escHtml(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+/* rich version of extractBlocks: one entry per block, with inline HTML kept */
+function extractRichBlocks(root){
+  const blocks = [];
+  const isBlock = el => BLOCK_TAGS.test(el.tagName) || HEADING_TAGS.test(el.tagName) || el.tagName==='LI';
+  // walk top-down; a block with no block-children is a leaf we emit
+  const visit = el => {
+    for (const child of el.children){
+      const tag = child.tagName.toUpperCase();
+      if (/^(SCRIPT|STYLE|NOSCRIPT|TITLE|HEAD)$/.test(tag)) continue;
+      const hasBlockKids = [...child.children].some(g=>isBlock(g));
+      if (isBlock(child) && !hasBlockKids){
+        const html = inlineHtml(child).replace(/\s+/g,' ').trim();
+        const text = child.textContent.replace(/\s+/g,' ').trim();
+        if (text) blocks.push({ tag, html, text });
+      } else {
+        visit(child);
+      }
+    }
+  };
+  visit(root);
+  // fallback: nothing structured found, treat the whole body as one block
+  if (!blocks.length){
+    const text = root.textContent.replace(/\s+/g,' ').trim();
+    if (text) blocks.push({ tag:'P', html: escHtml(text), text });
+  }
+  return blocks;
+}
+
+/* group text nodes by nearest block ancestor — survives div-soup epubs
 /* group text nodes by nearest block ancestor — survives div-soup epubs */
 function extractBlocks(root){
   const doc = root.ownerDocument || document;
@@ -850,7 +917,7 @@ async function convertPdf(buf, fname){
   return {
     title: meta.Title || fname.replace(/\.\w+$/,''),
     author: meta.Author || '',
-    chapters
+    chapters, format:'pdf'
   };
 }
 
@@ -937,11 +1004,20 @@ async function openBook(id, target){
   if (target && target.jump) jumpTo(target.jump.ci, target.jump.pi, true);
 }
 
+const HEADING_RE = /^H[1-6]$/;
 function sectionEl(ch, i){
   const sec = document.createElement('section');
   sec.id = 'ch-'+i;
   const h = document.createElement('h2'); h.textContent = ch.title; sec.appendChild(h);
-  ch.paras.forEach((p,pi)=>{ const e = document.createElement('p'); e.dataset.p = pi; e.textContent = p; sec.appendChild(e); });
+  const rich = ch.rich && ch.html && ch.html.length === ch.paras.length;
+  ch.paras.forEach((p,pi)=>{
+    // render headings as headings, list items with a bullet, else paragraphs
+    const tag = (ch.tags && ch.tags[pi]) || 'P';
+    const e = document.createElement('p');
+    e.dataset.p = pi;
+    if (rich) e.innerHTML = ch.html[pi]; else e.textContent = p;
+    sec.appendChild(e);
+  });
   return sec;
 }
 
@@ -1436,6 +1512,7 @@ function buildToc(){
       const b = document.createElement('button'); b.className='tocItem';
       const swatch = a.color==='under' ? '\u2014' : '\u25A0';
       b.innerHTML = '<span style="color:'+ANN_COLORS[a.color]+'">'+swatch+'</span> ' +
+        (a.ref ? '<span style="color:var(--amber)">'+esc(a.ref)+'</span> ' : '') +
         esc(a.text.slice(0,52)) + (a.text.length>52?'\u2026':'') +
         (a.note ? '<div style="color:var(--cyan);font-size:10px;margin-top:3px">\u270E '+esc(a.note.slice(0,60))+'</div>' : '');
       b.addEventListener('click', ()=>{ closePanels(); jumpTo(a.ci, a.pi, true); });
@@ -1876,15 +1953,87 @@ function renderVersion(){
   tip.addEventListener('click', e=>e.stopPropagation());
 }
 
+/* ============================================================
+   ANNOTATION ANCHORING
+   Highlights are stored as chapter+paragraph+char offsets, which is
+   exact but only valid for one conversion of one book. Imported
+   notes therefore anchor on the QUOTED TEXT and we locate it, so a
+   file written elsewhere still lands in the right place.
+   Matching is forgiving about whitespace, curly quotes, dashes and
+   case, because those rarely survive a trip through a PDF.
+   ============================================================ */
+const _normChar = c =>
+  '\u2018\u2019\u02BC\u2032'.includes(c) ? "'" :
+  '\u201C\u201D\u2033'.includes(c) ? '"' :
+  '\u2013\u2014\u2212'.includes(c) ? '-' :
+  c.toLowerCase();
+
+/* normalised string + index map back to the original */
+function normMap(s){
+  let out = '', map = [], prevSpace = false;
+  for (let i=0;i<s.length;i++){
+    const c = s[i];
+    if (/\s/.test(c)){
+      if (prevSpace) continue;
+      prevSpace = true; out += ' '; map.push(i);
+    } else {
+      prevSpace = false; out += _normChar(c); map.push(i);
+    }
+  }
+  return { text: out, map };
+}
+const normStr = s => normMap(String(s||'')).text.trim();
+
+/* find where an imported annotation belongs in this book */
+function resolveAnchor(b, a){
+  // 1. trust an exact address only if the text there still matches
+  if ([a.ci,a.pi,a.start,a.end].every(v=>typeof v === 'number')){
+    const p = b.chapters[a.ci] && b.chapters[a.ci].paras[a.pi];
+    if (p && a.end <= p.length && a.end > a.start){
+      const quote = a.find || a.text;
+      if (!quote || normStr(p.slice(a.start, a.end)) === normStr(quote)){
+        return { ci:a.ci, pi:a.pi, start:a.start, end:a.end };
+      }
+    }
+  }
+  // 2. otherwise locate the quote
+  const needle = normStr(a.find || a.text);
+  if (!needle) return null;
+  const want = Math.max(1, a.occurrence || 1);
+  const scan = (restrict) => {
+    let seen = 0;
+    for (let ci=0; ci<b.chapters.length; ci++){
+      const ch = b.chapters[ci];
+      if (restrict && a.near && !String(ch.title||'').toLowerCase().includes(String(a.near).toLowerCase())) continue;
+      for (let pi=0; pi<ch.paras.length; pi++){
+        const { text: hay, map } = normMap(ch.paras[pi]);
+        let at = hay.indexOf(needle);
+        while (at !== -1){
+          seen++;
+          if (seen === want) return { ci, pi, start: map[at], end: map[at + needle.length - 1] + 1 };
+          at = hay.indexOf(needle, at + 1);
+        }
+      }
+    }
+    return null;
+  };
+  return (a.near ? scan(true) : null) || scan(false);   // hint first, then whole book
+}
+
 /* ---------- notes export / import ---------- */
 function exportNotes(b){
   const anns = getAnns(b.id);
   if (!anns.length){ toast('No notes in this book yet'); return; }
   const payload = {
     neinerreader_notes: 1, book: b.title, bookId: b.id, exported: Date.now(),
-    annotations: anns.map(a=>({ cfi:'ch'+a.ci+'/p'+a.pi+':'+a.start+'-'+a.end,
+    annotations: anns.map(a=>({
+      ref: a.ref || '',
+      find: a.text,
+      near: (b.chapters[a.ci] && b.chapters[a.ci].title) || '',
+      color: a.color, note: a.note || '', timestamp: a.t,
       ci:a.ci, pi:a.pi, start:a.start, end:a.end,
-      text:a.text, note:a.note||'', color:a.color, timestamp:a.t }))
+      cfi:'ch'+a.ci+'/p'+a.pi+':'+a.start+'-'+a.end, text:a.text
+    }))
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -1896,139 +2045,50 @@ function exportNotes(b){
 }
 
 async function importNotes(file){
-  if (!current) return;
+  if (!current){ toast('Open the book first, then import into it'); return; }
+  loading(true, 'matching notes\u2026');
   try{
     const d = JSON.parse(await file.text());
-    const incoming = d.annotations || d;
-    if (!Array.isArray(incoming)) throw new Error('no annotation array');
+    const incoming = Array.isArray(d) ? d : (d.annotations || d.highlights);
+    if (!Array.isArray(incoming)) throw new Error('no annotations array');
     const list = getAnns(current.id);
     const seen = new Set(list.map(a=>a.ci+':'+a.pi+':'+a.start+':'+a.end));
-    let n = 0;
+    let n = 0, dup = 0;
+    const missed = [];
     for (const a of incoming){
-      let { ci, pi, start, end } = a;
-      if (ci === undefined && typeof a.cfi === 'string'){    // parse our cfi-ish string
+      // legacy cfi string support
+      if (typeof a.cfi === 'string' && typeof a.ci !== 'number'){
         const m = a.cfi.match(/ch(\d+)\/p(\d+):(\d+)-(\d+)/);
-        if (m){ ci=+m[1]; pi=+m[2]; start=+m[3]; end=+m[4]; }
+        if (m){ a.ci=+m[1]; a.pi=+m[2]; a.start=+m[3]; a.end=+m[4]; }
       }
-      if ([ci,pi,start,end].some(v=>typeof v !== 'number')) continue;
-      const key = ci+':'+pi+':'+start+':'+end;
-      if (seen.has(key)) continue;
+      const at = resolveAnchor(current, a);
+      if (!at){ missed.push(a.ref || (a.find || a.text || '?').slice(0,50)); continue; }
+      const key = at.ci+':'+at.pi+':'+at.start+':'+at.end;
+      if (seen.has(key)){ dup++; continue; }
       seen.add(key);
-      list.push({ id:'an_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-        ci, pi, start, end, text:a.text||'', note:a.note||'', color:a.color||'yellow', t:a.timestamp||Date.now() });
+      list.push({
+        id: 'an_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+        ci: at.ci, pi: at.pi, start: at.start, end: at.end,
+        text: current.chapters[at.ci].paras[at.pi].slice(at.start, at.end),
+        note: a.note || '', color: ANN_COLORS[a.color] ? a.color : 'yellow',
+        ref: a.ref || '', t: a.timestamp || Date.now()
+      });
       n++;
     }
     setAnns(current.id, list);
     renderView(currentFrac()); buildToc();
-    toast(n ? n+' notes imported' : 'Nothing new to import');
-  }catch(e){ console.error(e); toast('Import failed \u2014 '+(e.message||'bad file')); }
-}
-
-/* ============================================================
-   BOOK PANEL — everything about one book, reachable from the
-   library: continue, bookmarks, notes, exports, details, delete.
-   ============================================================ */
-async function openBookPanel(b){
-  const el = $('#bookBody2');
-  const m = metrics(b);
-  const pos = getPos(b.id);
-  const pct = pos ? Math.round((pos.o||0)*100) : 0;
-  const { books } = statsTotals();
-  const readSec = books[b.id] || 0;
-  const pagesRead = Math.round((pos ? (pos.o||0) : 0) * m.pages);
-  const bms = getBms(b.id);
-  const anns = getAnns(b.id);
-
-  let h = '<div id="bpTitle">'+esc(b.title)+'</div>' +
-    '<div id="bpAuthor">'+esc(b.author||'Unknown author')+'</div>' +
-    '<div class="bpBar"><div style="width:'+pct+'%"></div></div>' +
-    '<div style="font-size:10px;color:var(--txt-dim);letter-spacing:1px;margin-bottom:14px">' +
-      pct+'% \u00B7 PAGE '+pagesRead+' OF '+m.pages + (readSec?(' \u00B7 '+fmtDur(readSec)+' READ'):'') + '</div>' +
-    '<div class="bpBig">' +
-      '<button id="bpOpen">'+(pct>0?'CONTINUE':'START')+'</button>' +
-      (pct>0?'<button id="bpRestart" style="flex:0 0 auto;border-color:var(--line);background:var(--panel-2);color:var(--txt-dim)">RESTART</button>':'') +
-    '</div>';
-
-  h += '<div class="bpGrid">' +
-    '<div class="bpCell"><div class="bpV">'+fmtNum(m.pages)+'</div><div class="bpL">Pages (est)</div></div>' +
-    '<div class="bpCell"><div class="bpV">'+fmtNum(m.words)+'</div><div class="bpL">Words</div></div>' +
-    '<div class="bpCell"><div class="bpV">'+b.chapters.length+'</div><div class="bpL">Chapters</div></div>' +
-    '<div class="bpCell"><div class="bpV">'+fmtDur(readSec)+'</div><div class="bpL">Time read</div></div>' +
-    '<div class="bpCell"><div class="bpV">'+fmtBytes(m.bytes)+'</div><div class="bpL">Text size</div></div>' +
-    '<div class="bpCell"><div class="bpV">'+(b.srcSize?fmtBytes(b.srcSize):'\u2014')+'</div><div class="bpL">Source file</div></div>' +
-    '</div>';
-
-  if (b.file) h += '<div style="font-size:10px;color:var(--txt-dim);margin:-8px 0 16px;overflow:hidden;text-overflow:ellipsis">FROM '+esc(b.file)+'</div>';
-
-  el.innerHTML = h;
-
-  // ---- bookmarks
-  const bmWrap = document.createElement('div');
-  const bl = document.createElement('div'); bl.className='secLabel';
-  bl.textContent = '\u2605 Bookmarks (' + bms.length + ')';
-  bmWrap.appendChild(bl);
-  if (!bms.length){
-    const e = document.createElement('div');
-    e.style.cssText = 'font-size:10px;color:var(--txt-dim);padding:4px 0 8px';
-    e.textContent = 'None yet \u2014 tap \u2605 while reading to pin a spot.';
-    bmWrap.appendChild(e);
+    loading(false);
+    toast(n + ' imported' + (dup?', '+dup+' already there':'') + (missed.length?', '+missed.length+' not found':''));
+    if (missed.length){
+      alert('These could not be located in this book:\n\n' +
+        missed.slice(0,25).join('\n') +
+        (missed.length>25 ? '\n\n...and '+(missed.length-25)+' more' : '') +
+        '\n\nUsually the quoted text differs from this copy of the book.');
+    }
+  }catch(e){
+    loading(false);
+    console.error(e); toast('Import failed \u2014 '+(e.message||'bad file'));
   }
-  bms.forEach((bm,i)=>{
-    const row = document.createElement('div'); row.className='bmRow';
-    const btn = document.createElement('button'); btn.className='tocItem'; btn.textContent = '\u2605 ' + bm.label;
-    btn.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch: bm.ch, p: bm.p }); });
-    const x = document.createElement('button'); x.className='x'; x.innerHTML='&#10005;';
-    x.addEventListener('click', ()=>{ const a=getBms(b.id); a.splice(i,1); setBms(b.id,a); openBookPanel(b); });
-    row.appendChild(btn); row.appendChild(x); bmWrap.appendChild(row);
-  });
-  el.appendChild(bmWrap);
-
-  // ---- notes
-  if (anns.length){
-    const nl = document.createElement('div'); nl.className='secLabel';
-    nl.style.marginTop = '16px';
-    nl.textContent = 'Notes & highlights (' + anns.length + ')';
-    el.appendChild(nl);
-    anns.slice().sort((x,y)=>x.ci-y.ci||x.pi-y.pi).forEach(a=>{
-      const btn = document.createElement('button'); btn.className='tocItem';
-      btn.innerHTML = '<span style="color:'+ANN_COLORS[a.color]+'">\u25A0</span> ' +
-        esc(a.text.slice(0,46)) + (a.text.length>46?'\u2026':'') +
-        (a.note?'<div style="color:var(--cyan);font-size:10px;margin-top:3px">\u270E '+esc(a.note.slice(0,54))+'</div>':'');
-      btn.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch:a.ci, jump:{ci:a.ci, pi:a.pi} }); });
-      el.appendChild(btn);
-    });
-  }
-
-  // ---- exports + delete
-  const ex = document.createElement('div');
-  ex.innerHTML = '<div class="secLabel" style="margin-top:18px">Export</div>' +
-    '<div class="row">' +
-      '<button class="chip" data-x="html" data-tip="Standalone HTML ebook">HTML</button>' +
-      '<button class="chip" data-x="txt" data-tip="Plain text, one file">TXT</button>' +
-      '<button class="chip" data-x="zip" data-tip="One .txt per chapter">ZIP</button>' +
-      '<button class="chip" data-x="notes" data-tip="Highlights + notes as JSON">NOTES</button>' +
-    '</div>' +
-    '<button class="bpDel">REMOVE FROM LIBRARY</button>';
-  el.appendChild(ex);
-
-  ex.querySelector('[data-x=html]').addEventListener('click', ()=>exportHtml(b));
-  ex.querySelector('[data-x=txt]').addEventListener('click', ()=>exportTxt(b));
-  ex.querySelector('[data-x=zip]').addEventListener('click', ()=>exportZip(b));
-  ex.querySelector('[data-x=notes]').addEventListener('click', ()=>exportNotes(b));
-  ex.querySelector('.bpDel').addEventListener('click', async ()=>{
-    if (!confirm('Remove "'+b.title+'" from the library?\n\nBookmarks and notes for it go too.')) return;
-    await dbDel(b.id);
-    ['pos','bm','bmt','an','ant','pgm'].forEach(k=>localStorage.removeItem('nr3.'+k+'.'+b.id));
-    if (syncConfigured()){ try{ await api('/api/book/'+encodeURIComponent(b.id), {method:'DELETE'}); }catch(e){} }
-    markDirty(); autosaveNow(true);
-    closePanels(); renderLib(); renderStatsStrip();
-  });
-
-  $('#bpOpen').addEventListener('click', ()=>{ closePanels(); openBook(b.id); });
-  const rs = $('#bpRestart');
-  if (rs) rs.addEventListener('click', ()=>{ closePanels(); openBook(b.id, { ch:0, p:0 }); });
-
-  openPanel('bookPanel');
 }
 
 /* ---------- panels & wiring ---------- */
